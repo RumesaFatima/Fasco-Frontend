@@ -1,5 +1,4 @@
-const API_URL = "http://localhost:5000/api/admin";
-
+const API_URL = "https://fasco-backend-two.vercel.app/api/admin";
 export const adminLogin = async (credentials) => {
     const response = await fetch(`${API_URL}/login`, {
         method: "POST",
