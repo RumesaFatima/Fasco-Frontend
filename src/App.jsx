@@ -103,13 +103,9 @@ function Toasts() {
             <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-[#222]">
               <CheckIc className="h-4 w-4 text-black" />
             </div>
-
             <h3 className="mb-2 font-serif text-[20px] text-[#111]">
-              {t.type === "error"
-                ? "Something Went Wrong"
-                : "Product Added Successfully"}
+              {t.type === "error" ? "Something Went Wrong" : "Success"}
             </h3>
-
             <p className="mx-auto mb-6 max-w-[270px] text-[12px] leading-5 text-[#666]">
               {t.msg}
             </p>

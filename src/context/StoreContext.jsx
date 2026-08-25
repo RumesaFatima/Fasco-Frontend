@@ -68,7 +68,6 @@ export function StoreProvider({ children }) {
 
     const add = useCallback(
         (productId, size, color, qty) => {
-            // NOT LOGGED IN
             if (!user) {
                 toast(
                     "Please login to add products to your cart.",
@@ -78,7 +77,6 @@ export function StoreProvider({ children }) {
                 return false;
             }
 
-            // LOGGED IN
             setLines((currentLines) => {
                 const found = currentLines.find(
                     (line) =>
