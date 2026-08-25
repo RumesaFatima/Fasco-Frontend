@@ -85,22 +85,46 @@ function AuthBridge() {
 
   return null;
 }
-
 function Toasts() {
-  const { toasts } = useStore();
+  const { toasts, toast } = useStore();
 
   return (
-    <div className="pointer-events-none fixed bottom-6 right-6 z-70 flex flex-col items-end gap-2">
+    <>
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="toast-in flex items-center gap-2.5 rounded-lg bg-ink px-5 py-3.5 text-sm text-white shadow-xl"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/20 px-4"
         >
-          <CheckIc className="h-4 w-4 text-[#8ee6a1]" />
-          {t.msg}
+          <div className="w-full max-w-[360px] border border-[#e8e8e8] bg-white px-7 py-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+            <div className="mb-4 text-[11px] tracking-[0.25em] text-[#aaa]">
+              FASCO
+            </div>
+
+            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-[#222]">
+              <CheckIc className="h-4 w-4 text-black" />
+            </div>
+
+            <h3 className="mb-2 font-serif text-[20px] text-[#111]">
+              {t.type === "error"
+                ? "Something Went Wrong"
+                : "Product Added Successfully"}
+            </h3>
+
+            <p className="mx-auto mb-6 max-w-[270px] text-[12px] leading-5 text-[#666]">
+              {t.msg}
+            </p>
+
+            <button
+              type="button"
+              className="w-full bg-black py-3 text-[11px] font-medium tracking-[0.18em] text-white transition hover:bg-[#222]"
+              onClick={() => toast("", "close", t.id)}
+            >
+              OK
+            </button>
+          </div>
         </div>
       ))}
-    </div>
+    </>
   );
 }
 

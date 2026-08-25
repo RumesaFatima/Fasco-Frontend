@@ -46,7 +46,14 @@ export function StoreProvider({ children }) {
         );
     }, [lines]);
 
-    const toast = useCallback((msg, type = "error") => {
+    const toast = useCallback((msg, type = "error", closeId = null) => {
+        if (type === "close" && closeId) {
+            setToasts((current) =>
+                current.filter((item) => item.id !== closeId)
+            );
+            return;
+        }
+
         const id = Date.now() + Math.random();
 
         setToasts((current) => [
@@ -57,15 +64,7 @@ export function StoreProvider({ children }) {
                 type,
             },
         ]);
-
-        window.setTimeout(() => {
-            setToasts((current) =>
-                current.filter((item) => item.id !== id)
-            );
-        }, 3000);
     }, []);
-
-  
 
     const add = useCallback(
         (productId, size, color, qty) => {
@@ -230,7 +229,7 @@ export function StoreProvider({ children }) {
         shipping +
         wrapCost;
 
-   
+
 
     const placeOrder = useCallback(
         async (address, discount, email) => {
