@@ -1,14 +1,6 @@
-// ============================================================
-// FASCO LOCAL PRODUCT IMAGES
-// Images location:
-// frontend/public/images/
-// ============================================================
 
 const IMG = {
-    // ========================================================
-    // EXISTING IMAGES - DO NOT CHANGE
-    // ========================================================
-
+   
     h1: "/images/fasco img 1.jpg",
     h2: "/images/fasco img 2.jpg",
     h3: "/images/fasco img 3.jpg",
@@ -22,21 +14,11 @@ const IMG = {
     h11: "/images/fasco img 11.jpg",
     h12: "/images/fasco img 12.jpg",
     h13: "/images/fasco img 13.jpg",
-
-    // ========================================================
-    // NEW IMAGES
-    // ========================================================
-
     h14: "/images/fasco img 14.jpg",
     h15: "/images/fasco img 15.jpg",
     h16: "/images/fasco img 16.jpg",
     h17: "/images/fasco img 17.jpg",
     h18: "/images/fasco img 18.jpg",
-
-
-    // ========================================================
-    // Existing UI compatibility
-    // ========================================================
 
     w1: "/images/fasco img 1.jpg",
     w2: "/images/fasco img 4.jpg",
@@ -65,11 +47,6 @@ const IMG = {
     c5: "/images/fasco img 12.jpg",
 };
 
-
-// ============================================================
-// AUTH / HOME IMAGES
-// ============================================================
-
 export const AUTH_IMAGE = IMG.c4;
 
 export const NEWS_MAN = IMG.m6;
@@ -77,11 +54,6 @@ export const NEWS_MAN = IMG.m6;
 export const NEWS_WOMAN = IMG.h8;
 
 export const PEAKY_IMG = IMG.m5;
-
-
-// ============================================================
-// HERO SLIDES
-// ============================================================
 
 export const HERO_SLIDES = [
     {
@@ -112,11 +84,6 @@ export const HERO_SLIDES = [
     },
 ];
 
-
-// ============================================================
-// OTHER HOME PAGE IMAGE GROUPS
-// ============================================================
-
 export const DEAL_IMAGES = [
     IMG.w4,
     IMG.h4,
@@ -134,16 +101,7 @@ export const INSTA_IMAGES = [
     IMG.w3,
 ];
 
-
-// ============================================================
-// PRODUCT CATALOG
-// ============================================================
-
 export const CATALOG = [
-
-    // ========================================================
-    // EXISTING PRODUCTS - DO NOT CHANGE
-    // ========================================================
 
     {
         id: "p01",
@@ -604,12 +562,6 @@ export const CATALOG = [
             "A nautical blazer with a peaked lapel and horn buttons. Fully canvassed, half-lined, cut to be worn open.",
         tags: ["Jacket", "Suit"],
     },
-
-
-    // ========================================================
-    // NEW PRODUCTS - p19 TO p23
-    // ========================================================
-
     {
         id: "p19",
         name: "Classic Black Leather Jacket",
@@ -738,11 +690,6 @@ export const CATALOG = [
     },
 ];
 
-
-// ============================================================
-// CATEGORIES
-// ============================================================
-
 export const CATEGORIES = [
     "All",
     "Jackets",
@@ -752,12 +699,6 @@ export const CATEGORIES = [
     "Accessories",
 ];
 
-
-// ============================================================
-// HELPERS
-// ============================================================
-
-export const money = (n) => `$${Number(n).toFixed(2)}`;
 
 export const findProduct = (id) =>
     CATALOG.find((product) => product.id === id);

@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getAdminProfile } from "../services/adminAuthApi";
+import { getAdminProfile, getDashboardStats, } from "../services/adminAuthApi";
 
 function AdminDashboard() {
     const navigate = useNavigate();
 
     const [admin, setAdmin] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        totalProducts: 0,
+        totalOrders: 0,
+        totalSales: 0,
+        pendingOrders: 0,
+    });
     useEffect(() => {
         const loadAdmin = async () => {
             const token = localStorage.getItem("adminToken");
@@ -30,6 +36,11 @@ function AdminDashboard() {
                 }
 
                 setAdmin(data.admin);
+                const dashboardData = await getDashboardStats();
+
+                if (dashboardData?.success) {
+                    setStats(dashboardData.stats);
+                }
             } catch (error) {
                 console.error("Admin profile error:", error);
 
@@ -145,7 +156,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                    $124,500
+                                     ${stats.totalSales.toLocaleString()}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -173,7 +184,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                    3,492
+                                     {stats.totalOrders}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -201,7 +212,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                    12,840
+                                     {stats.totalUsers}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -229,7 +240,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                    268
+                                      {stats.totalProducts}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -262,7 +273,7 @@ function AdminDashboard() {
                         </p>
 
                         <p className="mt-3 font-serif text-2xl">
-                            120
+                              {stats.pendingOrders}
                         </p>
 
                         <p className="mt-2 text-[11px] text-gray-400">
@@ -341,7 +352,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-1 font-serif text-lg">
-                                    $124,500
+                                     ${stats.totalSales.toLocaleString()}
                                 </p>
 
                                 <p className="text-[10px] text-green-600">
@@ -383,7 +394,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-1 font-serif text-lg">
-                                    $124,500
+                                     ${stats.totalSales.toLocaleString()}
                                 </p>
 
                                 <p className="text-[10px] text-green-600">
@@ -521,11 +532,10 @@ function AdminDashboard() {
                                         </td>
 
                                         <td className="px-4 py-4">
-                                            <span className={`rounded px-2 py-1 text-[10px] ${
-                                                order[5] === "Paid"
-                                                    ? "bg-green-50 text-green-700"
-                                                    : "bg-red-50 text-red-600"
-                                            }`}>
+                                            <span className={`rounded px-2 py-1 text-[10px] ${order[5] === "Paid"
+                                                ? "bg-green-50 text-green-700"
+                                                : "bg-red-50 text-red-600"
+                                                }`}>
                                                 {order[5]}
                                             </span>
                                         </td>
@@ -642,13 +652,12 @@ function AdminDashboard() {
 
                                         <td className="px-4 py-4">
                                             <span
-                                                className={`rounded px-2 py-1 text-[10px] ${
-                                                    product[4] === "In Stock"
-                                                        ? "bg-green-50 text-green-700"
-                                                        : product[4] === "Low Stock"
+                                                className={`rounded px-2 py-1 text-[10px] ${product[4] === "In Stock"
+                                                    ? "bg-green-50 text-green-700"
+                                                    : product[4] === "Low Stock"
                                                         ? "bg-yellow-50 text-yellow-700"
                                                         : "bg-red-50 text-red-600"
-                                                }`}
+                                                    }`}
                                             >
                                                 {product[4]}
                                             </span>
@@ -735,7 +744,7 @@ function AdminDashboard() {
                             </p>
 
                             <p className="mt-2 font-serif text-2xl">
-                                12,840
+                                 {stats.totalUsers}
                             </p>
                         </div>
 

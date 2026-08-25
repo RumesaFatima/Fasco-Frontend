@@ -1,11 +1,5 @@
 import { CATALOG } from "./data";
-/**
- * API client. Pehle real Express + MongoDB backend se baat karta hai
- * (URL: root .env me VITE_API_BASE_URL se); agar backend offline hai
- * (jaise is preview me), to browser ke andar ek localStorage "mock
- * backend" use hota hai taaki login/signup/orders sab kuch bina kisi
- * setup ke kaam kare.
- */
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 function readLS(key, fallback) {
@@ -164,7 +158,6 @@ function mockSubscribe(email) {
     writeLS(NEWS_KEY, list);
     return { ok: true };
 }
-/* ------------------------------ transport ------------------------------ */
 async function call(path, init, fallback) {
     let body;
     if (init?.body) {
@@ -199,7 +192,6 @@ async function call(path, init, fallback) {
         return fallback(body ?? {});
     }
 }
-/* --------------------------------- api --------------------------------- */
 const json = (b) => ({
     method: "POST",
     body: JSON.stringify(b),
@@ -216,7 +208,6 @@ export const api = {
     orders: (email) => call(`/orders?email=${encodeURIComponent(email)}`, undefined, () => mockOrders(email)),
     subscribe: (email) => call("/newsletter", json({ email }), () => mockSubscribe(email)),
 };
-/* ------------------------------ session ------------------------------ */
 export function getSession() {
     const session = readLS(SESSION_KEY, null);
     if (session) return session;

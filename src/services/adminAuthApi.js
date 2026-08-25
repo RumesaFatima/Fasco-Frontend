@@ -23,3 +23,15 @@ export const getAdminProfile = async () => {
 
     return response.json();
 };
+export const getDashboardStats = async () => {
+    const token = localStorage.getItem("adminToken");
+
+    const response = await fetch(`${API_URL}/dashboard`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    return response.json();
+};
