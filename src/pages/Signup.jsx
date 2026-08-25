@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { useStore } from "../context/StoreContext";
 import { signupUser } from "../services/authApi";
 import GoogleButton from "../components/GoogleButton";
 
@@ -36,7 +36,7 @@ function EyeIcon({ open }) {
 
 function Signup() {
     const navigate = useNavigate();
-
+    const { setUser, toast } = useStore();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -44,7 +44,6 @@ function Signup() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
-    const [message, setMessage] = useState("");
 
     const handleChange = (e) => {
         setFormData({
@@ -68,14 +67,19 @@ function Signup() {
         e.preventDefault();
 
         if (formData.password.length !== 8) {
-            setMessage("Password must be exactly 8 characters.");
+            toast(
+                "Password must be exactly 8 characters.",
+                "error"
+            );
             return;
         }
 
         const data = await signupUser(formData);
 
-        setMessage(data.message);
-
+        toast(
+            data.message || "Account created successfully.",
+            "success"
+        );
         if (data.user) {
             setTimeout(() => {
                 navigate("/login");
@@ -209,11 +213,6 @@ function Signup() {
 
                     </form>
 
-                    {message && (
-                        <p className="message">
-                            {message}
-                        </p>
-                    )}
 
                     <div className="auth-switch">
 

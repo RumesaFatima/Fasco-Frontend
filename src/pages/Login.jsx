@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { useStore } from "../context/StoreContext";
 import { loginUser } from "../services/authApi";
 import GoogleButton from "../components/GoogleButton";
 
 function Login() {
     const navigate = useNavigate();
-
+    const { setUser, toast } = useStore();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
 
-    const [message, setMessage] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -26,27 +25,26 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        setMessage("");
         setLoading(true);
 
         try {
             const data = await loginUser(formData);
-
-            setMessage(data.message || "");
+            toast(
+                data.message || "Login successful.",
+                "success"
+            );
 
             if (!data.token) {
                 return;
             }
 
-            // Save token
             localStorage.setItem("token", data.token);
 
-            // Save logged-in user
             localStorage.setItem(
                 "user",
                 JSON.stringify(data.user)
             );
-
+            setUser(data.user, data.token);
             if (data.user?.isAdmin === true) {
                 localStorage.setItem("adminToken", data.token);
                 localStorage.setItem("admin", JSON.stringify(data.user));
@@ -54,15 +52,16 @@ function Login() {
                 navigate("/admin");
                 return;
             }
-            
+
             navigate("/dashboard");
 
         } catch (error) {
             console.error("Login Error:", error);
-
-            setMessage(
-                "Unable to login. Please try again."
+            toast(
+                "Unable to login. Please try again.",
+                "error"
             );
+
         } finally {
             setLoading(false);
         }
@@ -244,11 +243,7 @@ function Login() {
 
                     </form>
 
-                    {message && (
-                        <p className="message">
-                            {message}
-                        </p>
-                    )}
+                   
 
                     <div className="auth-switch">
 

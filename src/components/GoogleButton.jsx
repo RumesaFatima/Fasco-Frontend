@@ -1,11 +1,11 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
-
+import { useStore } from "../context/StoreContext";
 import { googleLogin } from "../services/authApi";
 
 function GoogleButton() {
     const navigate = useNavigate();
-
+    const { setUser, toast } = useStore();
     const handleGoogleSuccess = async (credentialResponse) => {
 
         const data = await googleLogin(
@@ -23,17 +23,26 @@ function GoogleButton() {
                 "user",
                 JSON.stringify(data.user)
             );
+            setUser(data.user, data.token);
 
-            console.log("Google login successful");
+            toast(
+                data.message || "Google login successful.",
+                "success"
+            );
 
             navigate("/dashboard");
         }
 
-        console.log(data.message);
+        if (data.message && !data.token) {
+            toast(data.message,"error");
+        }
     };
 
     const handleGoogleError = () => {
-        console.log("Google login failed");
+        toast(
+            "Google login failed. Please try again.",
+            "error"
+        );
     };
 
     return (
