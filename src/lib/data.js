@@ -707,3 +707,11 @@ export const related = (id, n = 4) =>
     CATALOG
         .filter((product) => product.id !== id)
         .slice(0, n);
+        export const money = (value) => {
+    const amount = Number(value) || 0;
+
+    return amount.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+    });
+};
