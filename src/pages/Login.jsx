@@ -29,14 +29,19 @@ function Login() {
 
         try {
             const data = await loginUser(formData);
+
+            if (!data?.token) {
+                toast(
+                    data?.message || "Invalid email or password.",
+                    "error"
+                );
+                return;
+            }
+
             toast(
                 data.message || "Login successful.",
                 "success"
             );
-
-            if (!data.token) {
-                return;
-            }
 
             localStorage.setItem("token", data.token);
 
@@ -44,10 +49,15 @@ function Login() {
                 "user",
                 JSON.stringify(data.user)
             );
+
             setUser(data.user, data.token);
+
             if (data.user?.isAdmin === true) {
                 localStorage.setItem("adminToken", data.token);
-                localStorage.setItem("admin", JSON.stringify(data.user));
+                localStorage.setItem(
+                    "admin",
+                    JSON.stringify(data.user)
+                );
 
                 navigate("/admin");
                 return;
@@ -57,16 +67,17 @@ function Login() {
 
         } catch (error) {
             console.error("Login Error:", error);
+
             toast(
+                error?.response?.data?.message ||
+                error?.message ||
                 "Unable to login. Please try again.",
                 "error"
             );
-
         } finally {
             setLoading(false);
         }
     };
-
     return (
         <div className="auth-page">
 
@@ -243,7 +254,7 @@ function Login() {
 
                     </form>
 
-                   
+
 
                     <div className="auth-switch">
 

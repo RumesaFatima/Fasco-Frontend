@@ -1,20 +1,33 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
+import { useStore } from "../context/StoreContext";
 import { forgotPassword } from "../services/authApi";
 
 function ForgotPassword() {
     const [email, setEmail] = useState("");
-    const [message, setMessage] = useState("");
-
+    const { toast } = useStore();
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const data = await forgotPassword(email);
+        try {
+            const data = await forgotPassword(email);
 
-        setMessage(data.message);
+            toast(
+                data?.message || "Password reset link sent successfully.",
+                "success"
+            );
+
+        } catch (error) {
+            console.error("Forgot Password Error:", error);
+
+            toast(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Unable to send reset link. Please try again.",
+                "error"
+            );
+        }
     };
-
     return (
         <div className="auth-page">
 
@@ -67,12 +80,6 @@ function ForgotPassword() {
                         </button>
 
                     </form>
-
-                    {message && (
-                        <p className="message">
-                            {message}
-                        </p>
-                    )}
 
                     <div className="back-link">
                         <Link to="/login">

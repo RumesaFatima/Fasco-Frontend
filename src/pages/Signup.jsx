@@ -74,16 +74,35 @@ function Signup() {
             return;
         }
 
-        const data = await signupUser(formData);
+        try {
+            const data = await signupUser(formData);
 
-        toast(
-            data.message || "Account created successfully.",
-            "success"
-        );
-        if (data.user) {
+            if (!data?.user) {
+                toast(
+                    data?.message || "Unable to create account.",
+                    "error"
+                );
+                return;
+            }
+
+            toast(
+                data.message || "Account created successfully.",
+                "success"
+            );
+
             setTimeout(() => {
                 navigate("/login");
             }, 1200);
+
+        } catch (error) {
+            console.error("Signup Error:", error);
+
+            toast(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Unable to create account. Please try again.",
+                "error"
+            );
         }
     };
 
