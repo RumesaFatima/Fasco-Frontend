@@ -46,7 +46,6 @@ export default function ProductPage() {
         <Crumbs items={[["Home", "/"], ["Shop", "/shop"], [p.name]]}/>
 
         <div className="mt-8 grid gap-12 lg:grid-cols-2">
-          {/* gallery */}
           <div className="flex gap-4">
             <div className="flex flex-col gap-3">
               {p.gallery.map((g) => (<button key={g} onClick={() => setImg(g)} className={`overflow-hidden border-2 transition-all ${img === g ? "border-ink" : "border-transparent opacity-70 hover:opacity-100"}`}>
@@ -57,8 +56,6 @@ export default function ProductPage() {
               <img key={img} src={img} alt={p.name} className="aspect-3/4 w-full object-cover" style={{ animation: "heroFade .5s both" }}/>
             </div>
           </div>
-
-          {/* info */}
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-mute">
               {p.brand}
@@ -192,7 +189,6 @@ export default function ProductPage() {
       </div>
       <Features />
 
-      {/* people also loved */}
       <section className="mx-auto max-w-1280px px-5 py-20">
         <div className="grid gap-10 lg:grid-cols-[300px_1fr]">
           <Reveal>

@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getAdminProfile, getDashboardStats, } from "../services/adminAuthApi";
+import {
+    getAdminProfile,
+    getDashboardStats,
+} from "../services/adminAuthApi";
 
 function AdminDashboard() {
     const navigate = useNavigate();
 
     const [admin, setAdmin] = useState(null);
     const [loading, setLoading] = useState(true);
+
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalProducts: 0,
@@ -15,6 +19,82 @@ function AdminDashboard() {
         totalSales: 0,
         pendingOrders: 0,
     });
+
+    const [revenuePeriod, setRevenuePeriod] = useState("month");
+
+    const [modal, setModal] = useState(null);
+
+    const defaultProducts = [
+        {
+            id: 1,
+            name: "The Structured Tote",
+            category: "Bags",
+            price: 320,
+            stock: 45,
+            date: "Aug 10, 2026",
+        },
+        {
+            id: 2,
+            name: "Linen Blazer",
+            category: "Outerwear",
+            price: 189,
+            stock: 32,
+            date: "Aug 09, 2026",
+        },
+        {
+            id: 3,
+            name: "Silk Shirt",
+            category: "Tops",
+            price: 129,
+            stock: 0,
+            date: "Aug 08, 2026",
+        },
+        {
+            id: 4,
+            name: "Wool Coat",
+            category: "Outerwear",
+            price: 349,
+            stock: 8,
+            date: "Aug 07, 2026",
+        },
+        {
+            id: 5,
+            name: "Wide Leg Pants",
+            category: "Bottoms",
+            price: 145,
+            stock: 12,
+            date: "Aug 06, 2026",
+        },
+    ];
+
+    const [products, setProducts] = useState(() => {
+        try {
+            const saved = localStorage.getItem("fascoAdminProducts");
+
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error("Products load error:", error);
+        }
+
+        return defaultProducts;
+    });
+
+    const [productForm, setProductForm] = useState({
+        name: "",
+        category: "Bags",
+        price: "",
+        stock: "",
+    });
+
+    useEffect(() => {
+        localStorage.setItem(
+            "fascoAdminProducts",
+            JSON.stringify(products)
+        );
+    }, [products]);
+
     useEffect(() => {
         const loadAdmin = async () => {
             const token = localStorage.getItem("adminToken");
@@ -36,6 +116,7 @@ function AdminDashboard() {
                 }
 
                 setAdmin(data.admin);
+
                 const dashboardData = await getDashboardStats();
 
                 if (dashboardData?.success) {
@@ -74,6 +155,178 @@ function AdminDashboard() {
         }
     };
 
+    const getProductStatus = (stock) => {
+        if (stock <= 0) return "Out of Stock";
+        if (stock <= 10) return "Low Stock";
+        return "In Stock";
+    };
+
+    const openAddProduct = () => {
+        setProductForm({
+            name: "",
+            category: "Bags",
+            price: "",
+            stock: "",
+        });
+
+        setModal({
+            type: "product",
+            mode: "add",
+        });
+    };
+
+    const openEditProduct = (product) => {
+        setProductForm({
+            id: product.id,
+            name: product.name,
+            category: product.category,
+            price: product.price,
+            stock: product.stock,
+        });
+
+        setModal({
+            type: "product",
+            mode: "edit",
+            product,
+        });
+    };
+
+    const saveProduct = (event) => {
+        event.preventDefault();
+
+        const name = productForm.name.trim();
+        const price = Number(productForm.price);
+        const stock = Number(productForm.stock);
+
+        if (!name) return;
+
+        if (productForm.id) {
+            setProducts((currentProducts) =>
+                currentProducts.map((product) =>
+                    product.id === productForm.id
+                        ? {
+                              ...product,
+                              name,
+                              category: productForm.category,
+                              price,
+                              stock,
+                          }
+                        : product
+                )
+            );
+
+            setModal({
+                type: "success",
+                title: "Product Updated",
+                message: `${name} has been updated successfully.`,
+            });
+
+            return;
+        }
+
+        const newProduct = {
+            id: Date.now(),
+            name,
+            category: productForm.category,
+            price,
+            stock,
+            date: new Date().toLocaleDateString("en-US", {
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+            }),
+        };
+
+        setProducts((currentProducts) => [
+            newProduct,
+            ...currentProducts,
+        ]);
+
+        setModal({
+            type: "success",
+            title: "Product Added",
+            message: `${name} has been added successfully.`,
+        });
+    };
+
+    const openDeleteProduct = (product) => {
+        setModal({
+            type: "delete",
+            product,
+        });
+    };
+
+    const deleteProduct = () => {
+        const deletedName = modal?.product?.name;
+
+        setProducts((currentProducts) =>
+            currentProducts.filter(
+                (product) => product.id !== modal.product.id
+            )
+        );
+
+        setModal({
+            type: "success",
+            title: "Product Deleted",
+            message: `${deletedName} has been deleted successfully.`,
+        });
+    };
+
+    const orders = [
+        [
+            "#ORD-8924A",
+            "Alexandra V.",
+            "The Structured Tote",
+            "Aug 23, 2026",
+            "$320.00",
+            "Paid",
+            "Shipped",
+        ],
+        [
+            "#ORD-7712B",
+            "Jonathan M.",
+            "Linen Blazer",
+            "Aug 22, 2026",
+            "$189.00",
+            "Paid",
+            "Processing",
+        ],
+        [
+            "#ORD-5632C",
+            "Sophia L.",
+            "Silk Shirt",
+            "Aug 21, 2026",
+            "$129.00",
+            "Paid",
+            "Delivered",
+        ],
+        [
+            "#ORD-4453D",
+            "David K.",
+            "Wool Coat",
+            "Aug 20, 2026",
+            "$349.00",
+            "Unpaid",
+            "Pending",
+        ],
+        [
+            "#ORD-3321E",
+            "Emma R.",
+            "Wide Leg Pants",
+            "Aug 19, 2026",
+            "$145.00",
+            "Paid",
+            "Cancelled",
+        ],
+    ];
+
+    const viewOrder = (order) => {
+        setModal({
+            type: "order",
+            order,
+        });
+    };
+
     if (loading) {
         return (
             <div className="flex min-h-[70vh] items-center justify-center bg-[#faf9f7]">
@@ -87,16 +340,7 @@ function AdminDashboard() {
     return (
         <div className="bg-[#faf9f7] text-[#171717]">
 
-            {/* =====================================================
-                DASHBOARD CONTENT ONLY
-                Navbar + Footer are coming from App.jsx
-            ====================================================== */}
-
             <div className="mx-auto max-w-1280px px-5 py-10 sm:px-8 lg:px-10">
-
-                {/* =====================================================
-                    TOP HEADER
-                ====================================================== */}
 
                 <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-start">
 
@@ -137,10 +381,6 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* =====================================================
-                    STAT CARDS
-                ====================================================== */}
-
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
                     <button
@@ -156,7 +396,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                     ${stats.totalSales.toLocaleString()}
+                                    ${Number(stats.totalSales || 0).toLocaleString()}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -184,7 +424,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                     {stats.totalOrders}
+                                    {stats.totalOrders}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -212,7 +452,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                     {stats.totalUsers}
+                                    {stats.totalUsers}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -240,7 +480,7 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                      {stats.totalProducts}
+                                    {products.length}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -257,10 +497,6 @@ function AdminDashboard() {
 
                 </div>
 
-                {/* =====================================================
-                    SECONDARY STATS
-                ====================================================== */}
-
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
                     <button
@@ -273,7 +509,7 @@ function AdminDashboard() {
                         </p>
 
                         <p className="mt-3 font-serif text-2xl">
-                              {stats.pendingOrders}
+                            {stats.pendingOrders}
                         </p>
 
                         <p className="mt-2 text-[11px] text-gray-400">
@@ -291,7 +527,13 @@ function AdminDashboard() {
                         </p>
 
                         <p className="mt-3 font-serif text-2xl">
-                            18
+                            {
+                                products.filter(
+                                    (product) =>
+                                        product.stock > 0 &&
+                                        product.stock <= 10
+                                ).length
+                            }
                         </p>
 
                         <p className="mt-2 text-[11px] text-red-500">
@@ -300,10 +542,6 @@ function AdminDashboard() {
                     </button>
 
                 </div>
-
-                {/* =====================================================
-                    REVENUE OVERVIEW
-                ====================================================== */}
 
                 <section className="mt-5 rounded-lg border border-gray-200 bg-white p-5 sm:p-6">
 
@@ -319,21 +557,36 @@ function AdminDashboard() {
 
                             <button
                                 type="button"
-                                className="transition hover:text-black"
+                                onClick={() => setRevenuePeriod("week")}
+                                className={
+                                    revenuePeriod === "week"
+                                        ? "border-b border-black pb-1 font-medium text-black"
+                                        : "transition hover:text-black"
+                                }
                             >
                                 This Week
                             </button>
 
                             <button
                                 type="button"
-                                className="border-b border-black pb-1 font-medium text-black"
+                                onClick={() => setRevenuePeriod("month")}
+                                className={
+                                    revenuePeriod === "month"
+                                        ? "border-b border-black pb-1 font-medium text-black"
+                                        : "transition hover:text-black"
+                                }
                             >
                                 This Month
                             </button>
 
                             <button
                                 type="button"
-                                className="transition hover:text-black"
+                                onClick={() => setRevenuePeriod("year")}
+                                className={
+                                    revenuePeriod === "year"
+                                        ? "border-b border-black pb-1 font-medium text-black"
+                                        : "transition hover:text-black"
+                                }
                             >
                                 This Year
                             </button>
@@ -352,11 +605,19 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-1 font-serif text-lg">
-                                     ${stats.totalSales.toLocaleString()}
+                                    ${
+                                        revenuePeriod === "week"
+                                            ? "28,450"
+                                            : revenuePeriod === "year"
+                                                ? "248,450"
+                                                : Number(
+                                                      stats.totalSales || 0
+                                                  ).toLocaleString()
+                                    }
                                 </p>
 
                                 <p className="text-[10px] text-green-600">
-                                    ↑ 12.5% from last month
+                                    ↑ 12.5% from previous period
                                 </p>
                             </div>
 
@@ -394,7 +655,9 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-1 font-serif text-lg">
-                                     ${stats.totalSales.toLocaleString()}
+                                    ${Number(
+                                        stats.totalSales || 0
+                                    ).toLocaleString()}
                                 </p>
 
                                 <p className="text-[10px] text-green-600">
@@ -444,21 +707,43 @@ function AdminDashboard() {
                             </svg>
 
                             <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-gray-400">
-                                <span>Jul 24</span>
-                                <span>Jul 31</span>
-                                <span>Aug 07</span>
-                                <span>Aug 14</span>
-                                <span>Aug 21</span>
+
+                                {revenuePeriod === "week" ? (
+                                    <>
+                                        <span>Mon</span>
+                                        <span>Tue</span>
+                                        <span>Wed</span>
+                                        <span>Thu</span>
+                                        <span>Fri</span>
+                                        <span>Sat</span>
+                                        <span>Sun</span>
+                                    </>
+                                ) : revenuePeriod === "year" ? (
+                                    <>
+                                        <span>Jan</span>
+                                        <span>Mar</span>
+                                        <span>May</span>
+                                        <span>Jul</span>
+                                        <span>Sep</span>
+                                        <span>Nov</span>
+                                        <span>Dec</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Jul 24</span>
+                                        <span>Jul 31</span>
+                                        <span>Aug 07</span>
+                                        <span>Aug 14</span>
+                                        <span>Aug 21</span>
+                                    </>
+                                )}
+
                             </div>
 
                         </div>
 
                     </div>
                 </section>
-
-                {/* =====================================================
-                    RECENT ORDERS
-                ====================================================== */}
 
                 <section
                     id="orders"
@@ -473,7 +758,11 @@ function AdminDashboard() {
 
                         <button
                             type="button"
-                            onClick={() => goTo("orders")}
+                            onClick={() =>
+                                setModal({
+                                    type: "orders",
+                                })
+                            }
                             className="text-xs font-medium transition hover:underline"
                         >
                             View All Orders
@@ -500,17 +789,12 @@ function AdminDashboard() {
 
                             <tbody className="divide-y divide-gray-100">
 
-                                {[
-                                    ["#ORD-8924A", "Alexandra V.", "The Structured Tote", "Aug 23, 2026", "$320.00", "Paid", "Shipped"],
-                                    ["#ORD-7712B", "Jonathan M.", "Linen Blazer", "Aug 22, 2026", "$189.00", "Paid", "Processing"],
-                                    ["#ORD-5632C", "Sophia L.", "Silk Shirt", "Aug 21, 2026", "$129.00", "Paid", "Delivered"],
-                                    ["#ORD-4453D", "David K.", "Wool Coat", "Aug 20, 2026", "$349.00", "Unpaid", "Pending"],
-                                    ["#ORD-3321E", "Emma R.", "Wide Leg Pants", "Aug 19, 2026", "$145.00", "Paid", "Cancelled"],
-                                ].map((order) => (
+                                {orders.map((order) => (
                                     <tr
                                         key={order[0]}
                                         className="transition hover:bg-[#faf9f7]"
                                     >
+
                                         <td className="px-4 py-4 font-medium">
                                             {order[0]}
                                         </td>
@@ -532,10 +816,13 @@ function AdminDashboard() {
                                         </td>
 
                                         <td className="px-4 py-4">
-                                            <span className={`rounded px-2 py-1 text-[10px] ${order[5] === "Paid"
-                                                ? "bg-green-50 text-green-700"
-                                                : "bg-red-50 text-red-600"
-                                                }`}>
+                                            <span
+                                                className={`rounded px-2 py-1 text-[10px] ${
+                                                    order[5] === "Paid"
+                                                        ? "bg-green-50 text-green-700"
+                                                        : "bg-red-50 text-red-600"
+                                                }`}
+                                            >
                                                 {order[5]}
                                             </span>
                                         </td>
@@ -547,14 +834,19 @@ function AdminDashboard() {
                                         </td>
 
                                         <td className="px-4 py-4">
+
                                             <button
                                                 type="button"
-                                                onClick={() => alert(`Viewing ${order[0]}`)}
+                                                onClick={() =>
+                                                    viewOrder(order)
+                                                }
                                                 className="text-gray-500 transition hover:text-black hover:underline"
                                             >
                                                 View
                                             </button>
+
                                         </td>
+
                                     </tr>
                                 ))}
 
@@ -564,10 +856,6 @@ function AdminDashboard() {
 
                     </div>
                 </section>
-
-                {/* =====================================================
-                    PRODUCTS
-                ====================================================== */}
 
                 <section
                     id="products"
@@ -592,9 +880,7 @@ function AdminDashboard() {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("Add New Product")
-                                }
+                                onClick={openAddProduct}
                                 className="rounded bg-black px-4 py-2 text-xs font-medium text-white transition hover:bg-gray-800"
                             >
                                 + Add New Product
@@ -622,81 +908,92 @@ function AdminDashboard() {
 
                             <tbody className="divide-y divide-gray-100">
 
-                                {[
-                                    ["The Structured Tote", "Bags", "$320.00", "45", "In Stock", "Aug 10, 2026"],
-                                    ["Linen Blazer", "Outerwear", "$189.00", "32", "In Stock", "Aug 09, 2026"],
-                                    ["Silk Shirt", "Tops", "$129.00", "0", "Out of Stock", "Aug 08, 2026"],
-                                    ["Wool Coat", "Outerwear", "$349.00", "8", "Low Stock", "Aug 07, 2026"],
-                                    ["Wide Leg Pants", "Bottoms", "$145.00", "12", "Low Stock", "Aug 06, 2026"],
-                                ].map((product) => (
-                                    <tr
-                                        key={product[0]}
-                                        className="transition hover:bg-[#faf9f7]"
-                                    >
+                                {products.map((product) => {
+                                    const status = getProductStatus(
+                                        Number(product.stock)
+                                    );
 
-                                        <td className="px-4 py-4 font-medium">
-                                            {product[0]}
-                                        </td>
+                                    return (
+                                        <tr
+                                            key={product.id}
+                                            className="transition hover:bg-[#faf9f7]"
+                                        >
 
-                                        <td className="px-4 py-4 text-gray-500">
-                                            {product[1]}
-                                        </td>
+                                            <td className="px-4 py-4 font-medium">
+                                                {product.name}
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            {product[2]}
-                                        </td>
+                                            <td className="px-4 py-4 text-gray-500">
+                                                {product.category}
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            {product[3]}
-                                        </td>
+                                            <td className="px-4 py-4">
+                                                $
+                                                {Number(
+                                                    product.price
+                                                ).toFixed(2)}
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            <span
-                                                className={`rounded px-2 py-1 text-[10px] ${product[4] === "In Stock"
-                                                    ? "bg-green-50 text-green-700"
-                                                    : product[4] === "Low Stock"
-                                                        ? "bg-yellow-50 text-yellow-700"
-                                                        : "bg-red-50 text-red-600"
+                                            <td className="px-4 py-4">
+                                                {product.stock}
+                                            </td>
+
+                                            <td className="px-4 py-4">
+
+                                                <span
+                                                    className={`rounded px-2 py-1 text-[10px] ${
+                                                        status === "In Stock"
+                                                            ? "bg-green-50 text-green-700"
+                                                            : status ===
+                                                                "Low Stock"
+                                                              ? "bg-yellow-50 text-yellow-700"
+                                                              : "bg-red-50 text-red-600"
                                                     }`}
-                                            >
-                                                {product[4]}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-4 py-4 text-gray-500">
-                                            {product[5]}
-                                        </td>
-
-                                        <td className="px-4 py-4">
-
-                                            <div className="flex gap-3">
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        alert(`Edit ${product[0]}`)
-                                                    }
-                                                    className="hover:underline"
                                                 >
-                                                    Edit
-                                                </button>
+                                                    {status}
+                                                </span>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        alert(`Delete ${product[0]}`)
-                                                    }
-                                                    className="text-gray-500 hover:text-red-600 hover:underline"
-                                                >
-                                                    Delete
-                                                </button>
+                                            </td>
 
-                                            </div>
+                                            <td className="px-4 py-4 text-gray-500">
+                                                {product.date}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-4">
 
-                                    </tr>
-                                ))}
+                                                <div className="flex gap-3">
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            openEditProduct(
+                                                                product
+                                                            )
+                                                        }
+                                                        className="hover:underline"
+                                                    >
+                                                        Edit
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            openDeleteProduct(
+                                                                product
+                                                            )
+                                                        }
+                                                        className="text-gray-500 hover:text-red-600 hover:underline"
+                                                    >
+                                                        Delete
+                                                    </button>
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+                                    );
+                                })}
 
                             </tbody>
 
@@ -705,13 +1002,9 @@ function AdminDashboard() {
                     </div>
                 </section>
 
-                {/* =====================================================
-                    CUSTOMERS
-                ====================================================== */}
-
                 <section
                     id="customers"
-                    className="mt-5 rounded-lg border border-gray-200 bg-white p-6 scroll-mt-24"
+                    className="mt-5 scroll-mt-24 rounded-lg border border-gray-200 bg-white p-6"
                 >
 
                     <div className="flex items-center justify-between">
@@ -728,7 +1021,11 @@ function AdminDashboard() {
 
                         <button
                             type="button"
-                            onClick={() => alert("View All Customers")}
+                            onClick={() =>
+                                setModal({
+                                    type: "customers",
+                                })
+                            }
                             className="text-xs font-medium hover:underline"
                         >
                             View All Customers
@@ -744,7 +1041,7 @@ function AdminDashboard() {
                             </p>
 
                             <p className="mt-2 font-serif text-2xl">
-                                 {stats.totalUsers}
+                                {stats.totalUsers}
                             </p>
                         </div>
 
@@ -772,13 +1069,9 @@ function AdminDashboard() {
 
                 </section>
 
-                {/* =====================================================
-                    REVIEWS
-                ====================================================== */}
-
                 <section
                     id="reviews"
-                    className="mt-5 overflow-hidden rounded-lg border border-gray-200 bg-white scroll-mt-24"
+                    className="mt-5 scroll-mt-24 overflow-hidden rounded-lg border border-gray-200 bg-white"
                 >
 
                     <div className="flex items-center justify-between border-b border-gray-100 p-5">
@@ -789,7 +1082,11 @@ function AdminDashboard() {
 
                         <button
                             type="button"
-                            onClick={() => goTo("reviews")}
+                            onClick={() =>
+                                setModal({
+                                    type: "reviews",
+                                })
+                            }
                             className="text-xs font-medium hover:underline"
                         >
                             View All Reviews
@@ -860,10 +1157,6 @@ function AdminDashboard() {
 
                 </section>
 
-                {/* =====================================================
-                    ADMIN ACCOUNT
-                ====================================================== */}
-
                 <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
 
                     <div>
@@ -887,8 +1180,492 @@ function AdminDashboard() {
                 </div>
 
             </div>
+
+            <AdminModal
+                modal={modal}
+                setModal={setModal}
+                productForm={productForm}
+                setProductForm={setProductForm}
+                saveProduct={saveProduct}
+                deleteProduct={deleteProduct}
+            />
+
         </div>
     );
+}
+
+function AdminModal({
+    modal,
+    setModal,
+    productForm,
+    setProductForm,
+    saveProduct,
+    deleteProduct,
+}) {
+    if (!modal) return null;
+
+    const close = () => setModal(null);
+
+    const inputClass =
+        "mt-1 w-full border border-[#dedbd6] bg-white px-3 py-2.5 text-xs outline-none focus:border-black";
+
+    if (modal.type === "delete") {
+        return (
+            <div
+                className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4"
+                onMouseDown={close}
+            >
+                <div
+                    className="w-full max-w-[520px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
+                >
+
+                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-black text-sm">
+                        ▥
+                    </div>
+
+                    <p className="mt-4 text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
+                        FASCO
+                    </p>
+
+                    <h2 className="mt-3 text-center font-serif text-xl">
+                        Delete Product?
+                    </h2>
+
+                    <p className="mx-auto mt-2 max-w-[330px] text-center text-xs leading-5 text-[#77736d]">
+                        Are you sure you want to delete this product?
+                        This action cannot be undone.
+                    </p>
+
+                    <p className="mt-2 text-center text-xs font-medium">
+                        {modal.product?.name}
+                    </p>
+
+                    <div className="mt-6 grid grid-cols-2 gap-3">
+
+                        <button
+                            type="button"
+                            onClick={close}
+                            className="h-10 border border-[#bdb9b2] bg-white text-[10px] font-medium"
+                        >
+                            CANCEL
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={deleteProduct}
+                            className="h-10 bg-black text-[10px] font-medium text-white"
+                        >
+                            DELETE
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        );
+    }
+
+    if (modal.type === "success") {
+        return (
+            <div
+                className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4"
+                onMouseDown={close}
+            >
+                <div
+                    className="w-full max-w-[420px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
+                >
+
+                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-black text-sm">
+                        ✓
+                    </div>
+
+                    <p className="mt-4 text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
+                        FASCO
+                    </p>
+
+                    <h2 className="mt-3 text-center font-serif text-xl">
+                        {modal.title}
+                    </h2>
+
+                    <p className="mx-auto mt-2 max-w-[300px] text-center text-xs leading-5 text-[#77736d]">
+                        {modal.message}
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={close}
+                        className="mt-6 h-10 w-full bg-black text-[10px] font-medium text-white"
+                    >
+                        OK
+                    </button>
+
+                </div>
+            </div>
+        );
+    }
+
+    if (modal.type === "product") {
+        return (
+            <div
+                className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4"
+                onMouseDown={close}
+            >
+                <div
+                    className="w-full max-w-[520px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
+                >
+
+                    <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
+                        FASCO
+                    </p>
+
+                    <h2 className="mt-3 text-center font-serif text-xl">
+                        {modal.mode === "edit"
+                            ? "Edit Product"
+                            : "Add New Product"}
+                    </h2>
+
+                    <form
+                        onSubmit={saveProduct}
+                        className="mt-6 space-y-3"
+                    >
+
+                        <label className="block text-xs">
+                            Product Name
+
+                            <input
+                                required
+                                value={productForm.name}
+                                onChange={(event) =>
+                                    setProductForm({
+                                        ...productForm,
+                                        name: event.target.value,
+                                    })
+                                }
+                                className={inputClass}
+                                placeholder="Product name"
+                            />
+                        </label>
+
+                        <div className="grid grid-cols-2 gap-3">
+
+                            <label className="block text-xs">
+                                Category
+
+                                <select
+                                    value={productForm.category}
+                                    onChange={(event) =>
+                                        setProductForm({
+                                            ...productForm,
+                                            category:
+                                                event.target.value,
+                                        })
+                                    }
+                                    className={inputClass}
+                                >
+                                    <option>Bags</option>
+                                    <option>Outerwear</option>
+                                    <option>Tops</option>
+                                    <option>Bottoms</option>
+                                    <option>Dresses</option>
+                                    <option>Accessories</option>
+                                </select>
+                            </label>
+
+                            <label className="block text-xs">
+                                Price
+
+                                <input
+                                    required
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={productForm.price}
+                                    onChange={(event) =>
+                                        setProductForm({
+                                            ...productForm,
+                                            price: event.target.value,
+                                        })
+                                    }
+                                    className={inputClass}
+                                    placeholder="0.00"
+                                />
+                            </label>
+
+                        </div>
+
+                        <label className="block text-xs">
+                            Stock
+
+                            <input
+                                required
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={productForm.stock}
+                                onChange={(event) =>
+                                    setProductForm({
+                                        ...productForm,
+                                        stock: event.target.value,
+                                    })
+                                }
+                                className={inputClass}
+                                placeholder="0"
+                            />
+                        </label>
+
+                        <div className="grid grid-cols-2 gap-3 pt-3">
+
+                            <button
+                                type="button"
+                                onClick={close}
+                                className="h-10 border border-[#bdb9b2] text-[10px] font-medium"
+                            >
+                                CANCEL
+                            </button>
+
+                            <button
+                                type="submit"
+                                className="h-10 bg-black text-[10px] font-medium text-white"
+                            >
+                                {modal.mode === "edit"
+                                    ? "SAVE CHANGES"
+                                    : "ADD PRODUCT"}
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        );
+    }
+
+    if (modal.type === "order") {
+        const order = modal.order;
+
+        return (
+            <div
+                className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4"
+                onMouseDown={close}
+            >
+                <div
+                    className="w-full max-w-[520px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
+                >
+
+                    <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
+                        FASCO
+                    </p>
+
+                    <h2 className="mt-3 text-center font-serif text-xl">
+                        Order Details
+                    </h2>
+
+                    <div className="mt-6 space-y-3 border border-[#eeeae5] p-4 text-xs">
+
+                        <div className="flex justify-between gap-4">
+                            <span>Order ID</span>
+                            <span>{order?.[0]}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                            <span>Customer</span>
+                            <span>{order?.[1]}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                            <span>Product</span>
+                            <span>{order?.[2]}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                            <span>Date</span>
+                            <span>{order?.[3]}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                            <span>Amount</span>
+                            <span>{order?.[4]}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                            <span>Status</span>
+                            <span>{order?.[6]}</span>
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={close}
+                        className="mt-6 h-10 w-full bg-black text-[10px] font-medium text-white"
+                    >
+                        OK
+                    </button>
+
+                </div>
+            </div>
+        );
+    }
+
+    const simpleLists = {
+        customers: {
+            title: "Customers",
+            description:
+                "Customer overview and account activity.",
+
+            rows: [
+                [
+                    "Alexandra V.",
+                    "alexandra@example.com",
+                    "Active",
+                ],
+                [
+                    "Jonathan M.",
+                    "jonathan@example.com",
+                    "Active",
+                ],
+                [
+                    "Sophia L.",
+                    "sophia@example.com",
+                    "Active",
+                ],
+                [
+                    "David K.",
+                    "david@example.com",
+                    "Pending",
+                ],
+            ],
+        },
+
+        reviews: {
+            title: "All Reviews",
+            description:
+                "Recent customer reviews for FASCO products.",
+
+            rows: [
+                [
+                    "Alexandra V.",
+                    "The Structured Tote",
+                    "★★★★★",
+                ],
+                [
+                    "Jonathan M.",
+                    "Linen Blazer",
+                    "★★★★☆",
+                ],
+                [
+                    "Sophia L.",
+                    "Silk Shirt",
+                    "★★★★★",
+                ],
+            ],
+        },
+
+        orders: {
+            title: "All Orders",
+            description:
+                "Recent FASCO orders.",
+
+            rows: [
+                [
+                    "#ORD-8924A",
+                    "Alexandra V.",
+                    "$320.00",
+                ],
+                [
+                    "#ORD-7712B",
+                    "Jonathan M.",
+                    "$189.00",
+                ],
+                [
+                    "#ORD-5632C",
+                    "Sophia L.",
+                    "$129.00",
+                ],
+            ],
+        },
+    };
+
+    if (simpleLists[modal.type]) {
+        const data = simpleLists[modal.type];
+
+        return (
+            <div
+                className="fixed inset-0 z-100 flex items-center justify-center bg-black/45 px-4"
+                onMouseDown={close}
+            >
+                <div
+                    className="w-full max-w-[720px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
+                >
+
+                    <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
+                        FASCO
+                    </p>
+
+                    <h2 className="mt-3 text-center font-serif text-xl">
+                        {data.title}
+                    </h2>
+
+                    <p className="mt-2 text-center text-xs text-[#77736d]">
+                        {data.description}
+                    </p>
+
+                    <div className="mt-6 overflow-hidden border border-[#eeeae5]">
+
+                        {data.rows.map((row) => (
+                            <div
+                                key={row.join("-")}
+                                className="grid grid-cols-[1fr_1fr_auto] gap-4 border-b border-[#eeeae5] px-4 py-3 text-xs last:border-b-0"
+                            >
+
+                                {row.map((value, index) => (
+                                    <span
+                                        key={index}
+                                        className={
+                                            index === row.length - 1
+                                                ? "text-right text-[#77736d]"
+                                                : ""
+                                        }
+                                    >
+                                        {value}
+                                    </span>
+                                ))}
+
+                            </div>
+                        ))}
+
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={close}
+                        className="mt-6 h-10 w-full bg-black text-[10px] font-medium text-white"
+                    >
+                        OK
+                    </button>
+
+                </div>
+            </div>
+        );
+    }
+
+    return null;
 }
 
 export default AdminDashboard;

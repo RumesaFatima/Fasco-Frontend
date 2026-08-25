@@ -47,10 +47,6 @@ function Login() {
                 JSON.stringify(data.user)
             );
 
-            // ==========================================
-            // ADMIN
-            // ==========================================
-
             if (data.user?.isAdmin === true) {
                 localStorage.setItem("adminToken", data.token);
                 localStorage.setItem("admin", JSON.stringify(data.user));
@@ -58,9 +54,7 @@ function Login() {
                 navigate("/admin");
                 return;
             }
-            // ==========================================
-            // NORMAL USER
-            // ==========================================
+            
             navigate("/dashboard");
 
         } catch (error) {
@@ -84,10 +78,6 @@ function Login() {
 
                 <div className="auth-content">
 
-                    {/* =========================
-                        HEADING
-                    ========================= */}
-
                     <div className="auth-heading">
 
                         <span>Welcome Back</span>
@@ -100,17 +90,10 @@ function Login() {
 
                     </div>
 
-
-                    {/* =========================
-                        LOGIN FORM
-                    ========================= */}
-
                     <form
                         className="auth-form"
                         onSubmit={handleSubmit}
                     >
-
-                        {/* EMAIL */}
 
                         <div className="input-group">
 
@@ -129,9 +112,6 @@ function Login() {
                             />
 
                         </div>
-
-
-                        {/* PASSWORD */}
 
                         <div className="input-group">
 
@@ -157,7 +137,6 @@ function Login() {
                                     required
                                 />
 
-                                {/* Eye Icon */}
                                 <button
                                     type="button"
                                     className="password-toggle"
@@ -233,9 +212,6 @@ function Login() {
 
                         </div>
 
-
-                        {/* OPTIONS */}
-
                         <div className="form-options">
 
                             <label className="remember-me">
@@ -256,9 +232,6 @@ function Login() {
 
                         </div>
 
-
-                        {/* LOGIN BUTTON */}
-
                         <button
                             type="submit"
                             className="primary-button"
@@ -271,17 +244,11 @@ function Login() {
 
                     </form>
 
-
-                    {/* MESSAGE */}
-
                     {message && (
                         <p className="message">
                             {message}
                         </p>
                     )}
-
-
-                    {/* SIGNUP */}
 
                     <div className="auth-switch">
 
@@ -296,8 +263,6 @@ function Login() {
                     </div>
 
 
-                    {/* DIVIDER */}
-
                     <div className="divider">
 
                         <span>
@@ -306,8 +271,6 @@ function Login() {
 
                     </div>
 
-
-                    {/* GOOGLE */}
 
                     <div className="google-container">
                         <GoogleButton />

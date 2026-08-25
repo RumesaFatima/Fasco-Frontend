@@ -47,10 +47,6 @@ function Dashboard() {
       .toUpperCase();
   }, [userName]);
 
-  /*
-   * Orders can later come directly from your backend.
-   * For now we safely read locally stored orders if they exist.
-   */
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
@@ -83,9 +79,6 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f8f7f3] text-[#111111]">
 
-      {/* =========================
-          ACCOUNT HEADER
-      ========================= */}
 
       <section className="border-b border-[#deddd8] bg-[#f8f7f3]">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-10">
@@ -106,23 +99,15 @@ function Dashboard() {
         </div>
       </section>
 
-      {/* =========================
-          ACCOUNT AREA
-      ========================= */}
 
       <section className="border-b border-[#deddd8] bg-[#f8f7f3]">
 
         <div className="mx-auto flex max-w-7xl flex-col lg:flex-row">
 
-          {/* =========================
-              SIDEBAR
-          ========================= */}
-
           <aside className="w-full border-b border-[#deddd8] lg:w-[260px] lg:shrink-0 lg:border-b-0 lg:border-r">
 
             <div className="p-6 lg:sticky lg:top-0 lg:min-h-[600px]">
 
-              {/* User */}
               <div className="flex items-center gap-4 border-b border-[#deddd8] pb-6">
 
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#111111] font-serif text-lg text-white">
@@ -141,7 +126,6 @@ function Dashboard() {
 
               </div>
 
-              {/* Navigation */}
               <nav className="mt-6">
 
                 <div className="mb-3 text-[10px] font-medium uppercase tracking-[0.25em] text-[#9a9891]">
@@ -189,7 +173,6 @@ function Dashboard() {
 
               </nav>
 
-              {/* Logout */}
               <button
                 type="button"
                 onClick={logout}
@@ -202,17 +185,9 @@ function Dashboard() {
 
           </aside>
 
-          {/* =========================
-              MAIN CONTENT
-          ========================= */}
-
           <main className="min-w-0 flex-1">
 
             <div className="p-5 sm:p-8 lg:p-10">
-
-              {/* =========================
-                  ACCOUNT SUMMARY
-              ========================= */}
 
               <div className="grid gap-4 md:grid-cols-2">
 
@@ -256,10 +231,6 @@ function Dashboard() {
                 </div>
 
               </div>
-
-              {/* =========================
-                  ORDER HISTORY
-              ========================= */}
 
               <div className="mt-10">
 
@@ -370,10 +341,6 @@ function Dashboard() {
 
               </div>
 
-              {/* =========================
-                  PERSONAL DETAILS
-              ========================= */}
-
               <div className="mt-10">
 
                 <div className="text-[10px] uppercase tracking-[0.25em] text-[#99968e]">
@@ -429,11 +396,6 @@ function Dashboard() {
                 </div>
 
               </div>
-
-              {/* =========================
-                  REWARDS + ADDRESS
-              ========================= */}
-
               <div className="mt-10 grid gap-4 md:grid-cols-2">
 
                 <div className="border border-[#deddd8] bg-white p-6">

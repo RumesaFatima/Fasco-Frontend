@@ -110,23 +110,14 @@ function Shell() {
   const bare = BARE.some(
     (path) => pathname === path || pathname.startsWith(path + "/")
   );
-
-  // IMPORTANT:
-  // Admin dashboard has its own navbar + footer.
-
   return (
     <div className="flex min-h-screen flex-col bg-white">
 
-      {/* Customer/Auth layout */}
       {bare && <AuthStyles />}
-
 
       {!bare && <Navbar />}
       <main className="flex-1">
         <Routes>
-
-          {/* ================= CUSTOMER ================= */}
-
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductPage />} />
@@ -135,7 +126,6 @@ function Shell() {
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
           <Route path="/account" element={<Account />} />
-
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
@@ -153,16 +143,10 @@ function Shell() {
             path="/dashboard"
             element={<Dashboard />}
           />
-
-          {/* ================= ADMIN ================= */}
-
           <Route
             path="/admin"
             element={<AdminDashboard />}
           />
-
-          {/* ================= FALLBACK ================= */}
-
           <Route
             path="*"
             element={<Home />}

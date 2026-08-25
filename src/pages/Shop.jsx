@@ -100,7 +100,6 @@ export default function Shop() {
       </div>
 
       <div className="mx-auto grid max-w-1280px gap-10 px-5 pb-24 lg:grid-cols-[250px_1fr]">
-        {/* ------------------------- filters ------------------------- */}
         <aside>
           <h2 className="pb-2 font-serif text-2xl">Filters</h2>
           <Group title="Size">
@@ -159,7 +158,6 @@ export default function Shop() {
           </Group>
         </aside>
 
-        {/* ------------------------- products ------------------------- */}
         <div>
           <div className="flex items-center justify-between border-b border-line pb-4">
             <label className="flex items-center gap-3 text-sm text-mute">

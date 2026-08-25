@@ -4,7 +4,6 @@ import { api } from "../lib/api";
 import { DEAL_IMAGES, INSTA_IMAGES, NEWS_MAN, NEWS_WOMAN, PEAKY_IMG, } from "../lib/data";
 import { useStore } from "../context/StoreContext";
 import { BoxIc, Countdown, HeadsetIc, Reveal, SectionHead, ShieldIc, StarIc, TruckIc, } from "./ui";
-/* ------------------------------ brands ------------------------------ */
 const BRANDS = ["CHANEL", "HUGO BOSS", "PRADA", "CALVIN KLEIN", "DENIM"];
 export function Brands() {
     return (<div className="border-y border-line bg-white">
@@ -17,7 +16,6 @@ export function Brands() {
       </div>
     </div>);
 }
-/* ------------------------------ deals ------------------------------ */
 export function Deals() {
     return (<section className="mx-auto max-w-1280px px-5 py-24">
       <div className="grid items-center gap-14 lg:grid-cols-2">
@@ -51,7 +49,6 @@ export function Deals() {
       </div>
     </section>);
 }
-/* ------------------------------ peaky banner ------------------------------ */
 const CALLOUTS = [
     { t: "Fed Caps", cls: "right-6 top-10" },
     { t: "Suspenders", cls: "-left-2 top-1/3 hidden md:block" },
@@ -97,7 +94,6 @@ export function PeakyBanner() {
       </div>
     </section>);
 }
-/* ------------------------------ features ------------------------------ */
 const FEATS = [
     { Icon: BoxIc, t: "High Quality", d: "Crafted from top materials" },
     { Icon: ShieldIc, t: "Warranty Protection", d: "Over 2 years" },
@@ -121,7 +117,6 @@ export function Features() {
       </div>
     </section>);
 }
-/* ------------------------------ instagram ------------------------------ */
 export function Instagram() {
     return (<section className="bg-white">
       <SectionHead title="Follow Us On Instagram" sub="A daily feed of fits, drops and behind-the-scenes — @fasco on the gram." className="px-5 pt-20"/>
@@ -135,7 +130,6 @@ export function Instagram() {
       </Reveal>
     </section>);
 }
-/* ----------------------------- testimonials ----------------------------- */
 const QUOTES = [
     {
         name: "Emma K.",
@@ -187,7 +181,6 @@ export function Testimonials() {
       </div>
     </section>);
 }
-/* ------------------------------ newsletter ------------------------------ */
 export function Newsletter() {
     const [email, setEmail] = useState("");
     const [busy, setBusy] = useState(false);

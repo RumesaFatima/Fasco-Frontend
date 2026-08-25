@@ -49,7 +49,6 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
 
-        {/* LOGO */}
         <Link
           to="/"
           className="font-serif text-[26px] font-bold tracking-[0.22em] text-ink"
@@ -57,7 +56,6 @@ export default function Navbar() {
           FASCO
         </Link>
 
-        {/* NAVIGATION */}
         <nav className="hidden items-center gap-9 lg:flex">
           <NavItem
             to="/"
@@ -77,7 +75,6 @@ export default function Navbar() {
             active={pathname.startsWith("/product")}
           />
 
-          {/* PAGES */}
           <div className="group relative">
             <button
               type="button"
@@ -107,10 +104,8 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* ACTIONS */}
         <div className="flex items-center gap-5 text-ink">
 
-          {/* SEARCH */}
           <div className="hidden items-center sm:flex">
             <div className="flex items-center gap-2 overflow-hidden transition-all duration-300">
               {open && (
@@ -138,7 +133,6 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* USER / DASHBOARD */}
           <Link
             to={user ? "/dashboard" : "/login"}
             className="transition-transform hover:scale-110"
@@ -147,7 +141,6 @@ export default function Navbar() {
             <UserIc />
           </Link>
 
-          {/* WISHLIST */}
           <Link
             to="/shop"
             className="hidden transition-transform hover:scale-110 sm:block"
@@ -159,7 +152,6 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* CART */}
           <button
             type="button"
             onClick={() => setDrawer(true)}

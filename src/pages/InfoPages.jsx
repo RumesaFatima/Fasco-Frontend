@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { NEWS_MAN, NEWS_WOMAN } from "../lib/data";
 import { BoxIc, Crumbs, HeadsetIc, LockIc, Reveal, ReturnIc, ShieldIc, TagIc, TruckIc, ChevronIc, } from "../components/ui";
 import { Newsletter } from "../components/Sections";
-/* ------------------------------- about ------------------------------- */
 const STATS = [
     { n: "120K+", l: "Happy Customers" },
     { n: "3.5K", l: "Products Shipped Weekly" },
@@ -95,7 +94,6 @@ export function About() {
       <Newsletter />
     </div>);
 }
-/* ------------------------------ services ------------------------------ */
 const SERVICES = [
     { Icon: TruckIc, t: "Free Shipping", d: "On all orders over $50 — flat 2–4 day delivery, no surprises at the door." },
     { Icon: ReturnIc, t: "30-Day Returns", d: "Changed your mind? Send it back within 30 days for a full refund. No forms, no friction." },

@@ -68,7 +68,6 @@ export default function Checkout() {
         setOrder(o);
         window.scrollTo({ top: 0 });
     };
-    /* --------------------------- success view --------------------------- */
     if (order) {
         return (<div className="py-24">
         <div className="mx-auto max-w-xl px-5 text-center">
@@ -121,7 +120,6 @@ export default function Checkout() {
             Start Shopping
           </button>
         </div>) : (<div className="mx-auto grid max-w-[1200px] gap-12 px-5 py-14 lg:grid-cols-[1fr_400px]">
-          {/* left: forms */}
           <div>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="font-serif text-3xl">Contact</h2>
@@ -189,7 +187,6 @@ export default function Checkout() {
             </p>
           </div>
 
-          {/* right: summary */}
           <div className="h-fit rounded-lg bg-[#f7f7f9] p-7">
             <ul className="space-y-5">
               {lines.map((l) => {
