@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { getUserOrders } from "../services/orderApi";
 function Dashboard() {
   const navigate = useNavigate();
 
@@ -50,19 +50,22 @@ function Dashboard() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    try {
-      const storedOrders = localStorage.getItem("orders");
+    const loadOrders = async () => {
+      try {
+        const data = await getUserOrders();
 
-      if (storedOrders) {
-        const parsedOrders = JSON.parse(storedOrders);
-
-        if (Array.isArray(parsedOrders)) {
-          setOrders(parsedOrders);
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else {
+          setOrders([]);
         }
+      } catch (error) {
+        console.error("Failed to load orders:", error);
+        setOrders([]);
       }
-    } catch {
-      setOrders([]);
-    }
+    };
+
+    loadOrders();
   }, []);
 
   const logout = () => {

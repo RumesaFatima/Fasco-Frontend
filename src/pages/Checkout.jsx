@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { findProduct, money } from "../lib/data";
 import { useStore } from "../context/StoreContext";
-import { CheckIc, Crumbs, LockIc } from "../components/ui";
+import { CheckIc, Crumbs } from "../components/ui";
 import { Newsletter } from "../components/Sections";
-const COUNTRIES = ["United States", "United Kingdom", "India", "Germany", "United Arab Emirates", "Australia"];
+const COUNTRIES = ["Pakistan", "United States", "United Kingdom", "India", "Germany", "United Arab Emirates", "Australia"];
 export default function Checkout() {
   const { lines, subtotal, shipping, wrap, user, placeOrder, toast } = useStore();
   const nav = useNavigate();
@@ -24,15 +24,12 @@ export default function Checkout() {
     postal: "",
   });
   const [saveInfo, setSaveInfo] = useState(false);
-  const [pay, setPay] = useState({ method: "Credit Card", num: "", exp: "", cvc: "", holder: "" });
-  const [saveCard, setSaveCard] = useState(false);
   const [code, setCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [applied, setApplied] = useState(null);
   const [busy, setBusy] = useState(false);
   const [order, setOrder] = useState(null);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-  const setP = (k) => (e) => setPay({ ...pay, [k]: e.target.value });
   const wrapCost = wrap && lines.length ? 10 * lines.length : 0;
   const grand = Math.max(0, subtotal - discount) + shipping + wrapCost;
   const apply = () => {
@@ -52,27 +49,74 @@ export default function Checkout() {
     }
   };
   const payNow = async () => {
-    const required = [f.email, f.country, f.first, f.last, f.address, f.city, f.postal, pay.num, pay.exp, pay.cvc, pay.holder];
-    if (required.some((x) => !x.trim())) {
+    if (
+      !f.email.trim() ||
+      !f.country.trim() ||
+      !f.first.trim() ||
+      !f.last.trim() ||
+      !f.address.trim() ||
+      !f.city.trim() ||
+      !f.postal.trim()
+    ) {
       toast("Please fill all required fields");
       return;
     }
-    if (pay.num.replace(/\D/g, "").length < 12) {
-      toast("Enter a valid card number");
-      return;
+
+    try {
+      setBusy(true);
+
+      const response = await fetch(
+        "https://fasco-backend-two.vercel.app/api/payments/create-checkout-session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            items: lines.map((line) => {
+              const product = findProduct(line.productId);
+
+              return {
+                productId: line.productId,
+                name: product.name,
+                price: product.price,
+                quantity: line.qty,
+              };
+            }),
+
+            email: f.email,
+
+            shippingAddress: {
+              country: f.country,
+              firstName: f.first,
+              lastName: f.last,
+              address: f.address,
+              city: f.city,
+              postalCode: f.postal,
+            },
+
+            discount,
+            couponCode: applied,
+            shipping,
+            wrapCost,
+            total: grand,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to start payment");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error("Payment Error:", error);
+      toast(error.message);
+    } finally {
+      setBusy(false);
     }
-    setBusy(true);
-    const o = await placeOrder({
-      firstName: f.first,
-      lastName: f.last,
-      country: f.country,
-      address: f.address,
-      city: f.city,
-      postal: f.postal,
-    }, discount, f.email);
-    setBusy(false);
-    setOrder(o);
-    window.scrollTo({ top: 0 });
   };
   if (order) {
     return (<div className="py-24">
@@ -157,33 +201,6 @@ export default function Checkout() {
           Save This Info For Future
         </label>
 
-        <h2 className="mt-12 font-serif text-3xl">Payment</h2>
-        <div className="mt-5 rounded-lg bg-[#f6f6f8] p-5">
-          <div className="flex items-center justify-between rounded-lg border border-line bg-white px-4 py-3">
-            <select value={pay.method} onChange={setP("method")} className="bg-transparent text-sm outline-none">
-              <option>Credit Card</option>
-              <option>Debit Card</option>
-              <option>PayPal</option>
-            </select>
-            <span className="relative flex" title="Mastercard">
-              <span className="h-4 w-4 rounded-full bg-[#eb001b]" />
-              <span className="-ml-2 h-4 w-4 rounded-full bg-[#f79e1b] opacity-90" />
-            </span>
-          </div>
-          <div className="relative mt-4">
-            <input value={pay.num} onChange={setP("num")} placeholder="Card Number" className="box-input pr-11" />
-            <LockIc className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-mute" />
-          </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <input value={pay.exp} onChange={setP("exp")} placeholder="Expiration Date" className="box-input" />
-            <input value={pay.cvc} onChange={setP("cvc")} placeholder="Security Code" className="box-input" />
-          </div>
-          <input value={pay.holder} onChange={setP("holder")} placeholder="Card Holder Name" className="box-input mt-4" />
-          <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm text-gray-600">
-            <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="h-4 w-4 accent-ink" />
-            Save This Info For Future
-          </label>
-        </div>
 
         <button onClick={payNow} disabled={busy} className="btn-dark mt-8 w-full py-4 disabled:opacity-60">
           {busy ? "Processing..." : "Pay Now"}

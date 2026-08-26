@@ -27,7 +27,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-
+import PaymentSuccessful from "./pages/PaymentSuccessful";
+import PaymentCancelled from "./pages/PaymentCancelled";
 const BARE = [
   "/login",
   "/signup",
@@ -152,17 +153,14 @@ function Shell() {
           <Route path="/account" element={<Account />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-
           <Route
             path="/forgot-password"
             element={<ForgotPassword />}
           />
-
           <Route
             path="/reset-password/:token"
             element={<ResetPassword />}
           />
-
           <Route
             path="/dashboard"
             element={<Dashboard />}
@@ -174,6 +172,15 @@ function Shell() {
           <Route
             path="*"
             element={<Home />}
+          />
+          <Route
+            path="/payment-success"
+            element={<PaymentSuccessful />}
+          />
+
+          <Route
+            path="/payment-cancelled"
+            element={<PaymentCancelled />}
           />
 
         </Routes>
