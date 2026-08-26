@@ -46,14 +46,7 @@ export function StoreProvider({ children }) {
         );
     }, [lines]);
 
-    const toast = useCallback((msg, type = "error", closeId = null) => {
-        if (type === "close" && closeId) {
-            setToasts((current) =>
-                current.filter((item) => item.id !== closeId)
-            );
-            return;
-        }
-
+    const toast = useCallback((msg, type = "error") => {
         const id = Date.now() + Math.random();
 
         setToasts((current) => [
@@ -64,6 +57,12 @@ export function StoreProvider({ children }) {
                 type,
             },
         ]);
+    }, []);
+
+    const closeToast = useCallback((id) => {
+        setToasts((current) =>
+            current.filter((item) => item.id !== id)
+        );
     }, []);
 
     const add = useCallback(
@@ -231,7 +230,6 @@ export function StoreProvider({ children }) {
 
     const placeOrder = useCallback(
         async (address, discount, email) => {
-            // NEVER allow guest checkout
             if (!user) {
                 toast(
                     "Please login to continue to checkout.",
@@ -319,6 +317,7 @@ export function StoreProvider({ children }) {
         logout,
         toasts,
         toast,
+        closeToast,
         placeOrder,
         getMyOrders,
     };

@@ -87,7 +87,7 @@ function AuthBridge() {
   return null;
 }
 function Toasts() {
-  const { toasts, toast } = useStore();
+  const { toasts, closeToast } = useStore();
 
   return (
     <>
@@ -116,9 +116,7 @@ function Toasts() {
             <button
               type="button"
               className="w-full bg-black py-3 text-[11px] font-medium tracking-[0.18em] text-white transition hover:bg-[#222]"
-              onClick={() => {
-                window.location.reload();
-              }}
+              onClick={() => closeToast(t.id)}
             >
               OK
             </button>
