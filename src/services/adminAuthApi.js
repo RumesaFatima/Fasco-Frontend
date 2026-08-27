@@ -1,46 +1,38 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
+const API_URL = import.meta.env.VITE_API_BASE_URL
 const getToken = () => localStorage.getItem("adminToken");
 
-const request = async (url, options = {}) => {
-    const token = getToken();
-
-    const response = await fetch(`${API_URL}${url}`, {
-        ...options,
+export const adminLogin = async (email, password) => {
+    const response = await fetch(`${API_URL}/admin/login`, {
+        method: "POST",
         headers: {
             "Content-Type": "application/json",
-            ...(token
-                ? {
-                    Authorization: `Bearer ${token}`,
-                }
-                : {}),
-            ...(options.headers || {}),
         },
+        body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data?.message || "Request failed");
-    }
-
-    return data;
-};
-
-export const adminLogin = async (email, password) => {
-    return request("/admin/login", {
-        method: "POST",
-        body: JSON.stringify({
-            email,
-            password,
-        }),
-    });
+    return response.json();
 };
 
 export const getAdminProfile = async () => {
-    return request("/admin/profile");
+    const token = getToken();
+
+    const response = await fetch(`${API_URL}/admin/profile`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    return response.json();
 };
 
 export const getDashboardStats = async () => {
-    return request("/admin/dashboard");
+    const token = getToken();
+
+    const response = await fetch(`${API_URL}/admin/dashboard`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    return response.json();
 };
