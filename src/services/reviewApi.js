@@ -4,7 +4,9 @@ const API_BASE = (
 ).replace(/\/+$/, "");
 
 async function request(path, options = {}) {
-    const token = localStorage.getItem("token");
+    const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("adminToken");
 
     const response = await fetch(`${API_BASE}${path}`, {
         ...options,
@@ -43,11 +45,15 @@ async function request(path, options = {}) {
     return data;
 }
 
-export async function addReview(body) {
+export async function createReview(body) {
     return request("/reviews", {
         method: "POST",
         body: JSON.stringify(body),
     });
+}
+
+export async function addReview(body) {
+    return createReview(body);
 }
 
 export async function getProductReviews(productId) {
@@ -57,14 +63,7 @@ export async function getProductReviews(productId) {
 }
 
 export async function getAllReviews() {
-    const token = localStorage.getItem("adminToken");
-
     return request("/reviews/admin/all", {
         method: "GET",
-        headers: token
-            ? {
-                Authorization: `Bearer ${token}`,
-            }
-            : {},
     });
 }
