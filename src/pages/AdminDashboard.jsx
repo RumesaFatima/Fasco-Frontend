@@ -18,10 +18,16 @@ function AdminDashboard() {
         totalOrders: 0,
         totalSales: 0,
         pendingOrders: 0,
+        lowStockProducts: 0,
+        outOfStockProducts: 0,
+        totalReviews: 0,
     });
 
-    const [revenuePeriod, setRevenuePeriod] = useState("month");
+    const [orders, setOrders] = useState([]);
+    const [customers, setCustomers] = useState([]);
+    const [reviews, setReviews] = useState([]);
 
+    const [revenuePeriod, setRevenuePeriod] = useState("month");
     const [modal, setModal] = useState(null);
 
     const defaultProducts = [
@@ -110,7 +116,6 @@ function AdminDashboard() {
                 if (!data?.success) {
                     localStorage.removeItem("adminToken");
                     localStorage.removeItem("admin");
-
                     navigate("/login");
                     return;
                 }
@@ -120,7 +125,27 @@ function AdminDashboard() {
                 const dashboardData = await getDashboardStats();
 
                 if (dashboardData?.success) {
-                    setStats(dashboardData.stats);
+                    setStats({
+                        totalUsers: dashboardData.stats?.totalUsers || 0,
+                        totalProducts:
+                            dashboardData.stats?.totalProducts || 0,
+                        totalOrders:
+                            dashboardData.stats?.totalOrders || 0,
+                        totalSales:
+                            dashboardData.stats?.totalSales || 0,
+                        pendingOrders:
+                            dashboardData.stats?.pendingOrders || 0,
+                        lowStockProducts:
+                            dashboardData.stats?.lowStockProducts || 0,
+                        outOfStockProducts:
+                            dashboardData.stats?.outOfStockProducts || 0,
+                        totalReviews:
+                            dashboardData.stats?.totalReviews || 0,
+                    });
+
+                    setOrders(dashboardData.orders || []);
+                    setCustomers(dashboardData.customers || []);
+                    setReviews(dashboardData.reviews || []);
                 }
             } catch (error) {
                 console.error("Admin profile error:", error);
@@ -200,17 +225,19 @@ function AdminDashboard() {
 
         if (!name) return;
 
+        if (Number.isNaN(price) || Number.isNaN(stock)) return;
+
         if (productForm.id) {
             setProducts((currentProducts) =>
                 currentProducts.map((product) =>
                     product.id === productForm.id
                         ? {
-                              ...product,
-                              name,
-                              category: productForm.category,
-                              price,
-                              stock,
-                          }
+                            ...product,
+                            name,
+                            category: productForm.category,
+                            price,
+                            stock,
+                        }
                         : product
                 )
             );
@@ -272,7 +299,7 @@ function AdminDashboard() {
         });
     };
 
-    const orders = [
+    const fallbackOrders = [
         [
             "#ORD-8924A",
             "Alexandra V.",
@@ -320,6 +347,36 @@ function AdminDashboard() {
         ],
     ];
 
+    const displayOrders =
+        orders.length > 0
+            ? orders.map((order) => {
+                if (Array.isArray(order)) return order;
+
+                return [
+                    order.id || order._id || "#ORDER",
+                    order.customerName ||
+                    order.userName ||
+                    order.user ||
+                    "Customer",
+                    order.productName ||
+                    order.lines?.[0]?.name ||
+                    "Product",
+                    order.createdAt
+                        ? new Date(
+                            order.createdAt
+                        ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "2-digit",
+                            year: "numeric",
+                        })
+                        : "—",
+                    `$${Number(order.total || 0).toFixed(2)}`,
+                    order.paymentStatus || "Paid",
+                    order.status || "Processing",
+                ];
+            })
+            : fallbackOrders;
+
     const viewOrder = (order) => {
         setModal({
             type: "order",
@@ -339,11 +396,8 @@ function AdminDashboard() {
 
     return (
         <div className="bg-[#faf9f7] text-[#171717]">
-
             <div className="mx-auto max-w-1280px px-5 py-10 sm:px-8 lg:px-10">
-
                 <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-start">
-
                     <div>
                         <p className="text-[11px] uppercase tracking-[0.25em] text-gray-400">
                             Overview
@@ -359,15 +413,12 @@ function AdminDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-
                         <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
                             <span className="text-sm text-gray-600">
                                 August 23, 2026
                             </span>
 
-                            <span className="text-gray-400">
-                                ▣
-                            </span>
+                            <span className="text-gray-400">▣</span>
                         </div>
 
                         <button
@@ -377,26 +428,26 @@ function AdminDashboard() {
                         >
                             Logout
                         </button>
-
                     </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
                     <button
                         type="button"
                         onClick={() => goTo("orders")}
                         className="group rounded-lg border border-gray-200 bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm"
                     >
                         <div className="flex items-start justify-between">
-
                             <div>
                                 <p className="text-xs text-gray-500">
                                     Total Sales
                                 </p>
 
                                 <p className="mt-3 font-serif text-2xl">
-                                    ${Number(stats.totalSales || 0).toLocaleString()}
+                                    $
+                                    {Number(
+                                        stats.totalSales || 0
+                                    ).toLocaleString()}
                                 </p>
 
                                 <p className="mt-2 text-[11px] text-green-600">
@@ -407,7 +458,6 @@ function AdminDashboard() {
                             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-xs text-white">
                                 $
                             </span>
-
                         </div>
                     </button>
 
@@ -417,7 +467,6 @@ function AdminDashboard() {
                         className="group rounded-lg border border-gray-200 bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm"
                     >
                         <div className="flex items-start justify-between">
-
                             <div>
                                 <p className="text-xs text-gray-500">
                                     Total Orders
@@ -432,10 +481,7 @@ function AdminDashboard() {
                                 </p>
                             </div>
 
-                            <span className="text-xl">
-                                ♧
-                            </span>
-
+                            <span className="text-xl">♧</span>
                         </div>
                     </button>
 
@@ -445,7 +491,6 @@ function AdminDashboard() {
                         className="group rounded-lg border border-gray-200 bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm"
                     >
                         <div className="flex items-start justify-between">
-
                             <div>
                                 <p className="text-xs text-gray-500">
                                     Total Customers
@@ -460,10 +505,7 @@ function AdminDashboard() {
                                 </p>
                             </div>
 
-                            <span className="text-xl">
-                                ♙
-                            </span>
-
+                            <span className="text-xl">♙</span>
                         </div>
                     </button>
 
@@ -473,7 +515,6 @@ function AdminDashboard() {
                         className="group rounded-lg border border-gray-200 bg-white p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm"
                     >
                         <div className="flex items-start justify-between">
-
                             <div>
                                 <p className="text-xs text-gray-500">
                                     Total Products
@@ -488,17 +529,12 @@ function AdminDashboard() {
                                 </p>
                             </div>
 
-                            <span className="text-xl">
-                                ◇
-                            </span>
-
+                            <span className="text-xl">◇</span>
                         </div>
                     </button>
-
                 </div>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
                     <button
                         type="button"
                         onClick={() => goTo("orders")}
@@ -512,9 +548,7 @@ function AdminDashboard() {
                             {stats.pendingOrders}
                         </p>
 
-                        <p className="mt-2 text-[11px] text-gray-400">
-                            —
-                        </p>
+                        <p className="mt-2 text-[11px] text-gray-400">—</p>
                     </button>
 
                     <button
@@ -527,26 +561,21 @@ function AdminDashboard() {
                         </p>
 
                         <p className="mt-3 font-serif text-2xl">
-                            {
-                                products.filter(
-                                    (product) =>
-                                        product.stock > 0 &&
-                                        product.stock <= 10
-                                ).length
-                            }
+                            {products.filter(
+                                (product) =>
+                                    product.stock > 0 &&
+                                    product.stock <= 10
+                            ).length}
                         </p>
 
                         <p className="mt-2 text-[11px] text-red-500">
                             ↓ 2.4% from last month
                         </p>
                     </button>
-
                 </div>
 
                 <section className="mt-5 rounded-lg border border-gray-200 bg-white p-5 sm:p-6">
-
                     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
                         <div>
                             <h2 className="font-serif text-xl">
                                 Revenue Overview
@@ -554,7 +583,6 @@ function AdminDashboard() {
                         </div>
 
                         <div className="flex gap-6 text-xs text-gray-500">
-
                             <button
                                 type="button"
                                 onClick={() => setRevenuePeriod("week")}
@@ -590,30 +618,25 @@ function AdminDashboard() {
                             >
                                 This Year
                             </button>
-
                         </div>
-
                     </div>
 
                     <div className="mt-7 grid gap-8 lg:grid-cols-[170px_1fr]">
-
                         <div className="space-y-5">
-
                             <div>
                                 <p className="text-[11px] text-gray-500">
                                     Total Revenue
                                 </p>
 
                                 <p className="mt-1 font-serif text-lg">
-                                    ${
-                                        revenuePeriod === "week"
-                                            ? "28,450"
-                                            : revenuePeriod === "year"
-                                                ? "248,450"
-                                                : Number(
-                                                      stats.totalSales || 0
-                                                  ).toLocaleString()
-                                    }
+                                    $
+                                    {revenuePeriod === "week"
+                                        ? "28,450"
+                                        : revenuePeriod === "year"
+                                            ? "248,450"
+                                            : Number(
+                                                stats.totalSales || 0
+                                            ).toLocaleString()}
                                 </p>
 
                                 <p className="text-[10px] text-green-600">
@@ -655,7 +678,8 @@ function AdminDashboard() {
                                 </p>
 
                                 <p className="mt-1 font-serif text-lg">
-                                    ${Number(
+                                    $
+                                    {Number(
                                         stats.totalSales || 0
                                     ).toLocaleString()}
                                 </p>
@@ -664,19 +688,15 @@ function AdminDashboard() {
                                     ↑ 12.5% from last month
                                 </p>
                             </div>
-
                         </div>
 
                         <div className="relative h-[250px] overflow-hidden">
-
                             <div className="absolute inset-0 flex flex-col justify-between">
-
                                 <div className="border-t border-gray-100" />
                                 <div className="border-t border-gray-100" />
                                 <div className="border-t border-gray-100" />
                                 <div className="border-t border-gray-100" />
                                 <div className="border-t border-gray-100" />
-
                             </div>
 
                             <svg
@@ -707,7 +727,6 @@ function AdminDashboard() {
                             </svg>
 
                             <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-gray-400">
-
                                 {revenuePeriod === "week" ? (
                                     <>
                                         <span>Mon</span>
@@ -737,11 +756,8 @@ function AdminDashboard() {
                                         <span>Aug 21</span>
                                     </>
                                 )}
-
                             </div>
-
                         </div>
-
                     </div>
                 </section>
 
@@ -749,9 +765,7 @@ function AdminDashboard() {
                     id="orders"
                     className="mt-5 scroll-mt-24 overflow-hidden rounded-lg border border-gray-200 bg-white"
                 >
-
                     <div className="flex items-center justify-between border-b border-gray-100 p-5">
-
                         <h2 className="font-serif text-xl">
                             Recent Orders
                         </h2>
@@ -767,13 +781,10 @@ function AdminDashboard() {
                         >
                             View All Orders
                         </button>
-
                     </div>
 
                     <div className="overflow-x-auto">
-
                         <table className="w-full min-w-[850px] text-left text-xs">
-
                             <thead className="bg-[#faf9f7] text-[10px] uppercase tracking-wide text-gray-500">
                                 <tr>
                                     <th className="px-4 py-3">Order ID</th>
@@ -788,72 +799,65 @@ function AdminDashboard() {
                             </thead>
 
                             <tbody className="divide-y divide-gray-100">
+                                {displayOrders
+                                    .slice(0, 5)
+                                    .map((order, index) => (
+                                        <tr
+                                            key={`${order[0]}-${index}`}
+                                            className="transition hover:bg-[#faf9f7]"
+                                        >
+                                            <td className="px-4 py-4 font-medium">
+                                                {order[0]}
+                                            </td>
 
-                                {orders.map((order) => (
-                                    <tr
-                                        key={order[0]}
-                                        className="transition hover:bg-[#faf9f7]"
-                                    >
+                                            <td className="px-4 py-4">
+                                                {order[1]}
+                                            </td>
 
-                                        <td className="px-4 py-4 font-medium">
-                                            {order[0]}
-                                        </td>
+                                            <td className="px-4 py-4">
+                                                {order[2]}
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            {order[1]}
-                                        </td>
+                                            <td className="px-4 py-4 text-gray-500">
+                                                {order[3]}
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            {order[2]}
-                                        </td>
+                                            <td className="px-4 py-4">
+                                                {order[4]}
+                                            </td>
 
-                                        <td className="px-4 py-4 text-gray-500">
-                                            {order[3]}
-                                        </td>
+                                            <td className="px-4 py-4">
+                                                <span
+                                                    className={`rounded px-2 py-1 text-[10px] ${order[5] === "Paid"
+                                                            ? "bg-green-50 text-green-700"
+                                                            : "bg-red-50 text-red-600"
+                                                        }`}
+                                                >
+                                                    {order[5]}
+                                                </span>
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            {order[4]}
-                                        </td>
+                                            <td className="px-4 py-4">
+                                                <span className="rounded bg-gray-100 px-2 py-1 text-[10px]">
+                                                    {order[6]}
+                                                </span>
+                                            </td>
 
-                                        <td className="px-4 py-4">
-                                            <span
-                                                className={`rounded px-2 py-1 text-[10px] ${
-                                                    order[5] === "Paid"
-                                                        ? "bg-green-50 text-green-700"
-                                                        : "bg-red-50 text-red-600"
-                                                }`}
-                                            >
-                                                {order[5]}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-4 py-4">
-                                            <span className="rounded bg-gray-100 px-2 py-1 text-[10px]">
-                                                {order[6]}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-4 py-4">
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    viewOrder(order)
-                                                }
-                                                className="text-gray-500 transition hover:text-black hover:underline"
-                                            >
-                                                View
-                                            </button>
-
-                                        </td>
-
-                                    </tr>
-                                ))}
-
+                                            <td className="px-4 py-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        viewOrder(order)
+                                                    }
+                                                    className="text-gray-500 transition hover:text-black hover:underline"
+                                                >
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
                             </tbody>
-
                         </table>
-
                     </div>
                 </section>
 
@@ -861,15 +865,12 @@ function AdminDashboard() {
                     id="products"
                     className="mt-5 scroll-mt-24 overflow-hidden rounded-lg border border-gray-200 bg-white"
                 >
-
                     <div className="flex items-center justify-between border-b border-gray-100 p-5">
-
                         <h2 className="font-serif text-xl">
                             Products
                         </h2>
 
                         <div className="flex items-center gap-4">
-
                             <button
                                 type="button"
                                 onClick={() => goTo("products")}
@@ -885,15 +886,11 @@ function AdminDashboard() {
                             >
                                 + Add New Product
                             </button>
-
                         </div>
-
                     </div>
 
                     <div className="overflow-x-auto">
-
                         <table className="w-full min-w-[750px] text-left text-xs">
-
                             <thead className="bg-[#faf9f7] text-[10px] uppercase tracking-wide text-gray-500">
                                 <tr>
                                     <th className="px-4 py-3">Product</th>
@@ -907,7 +904,6 @@ function AdminDashboard() {
                             </thead>
 
                             <tbody className="divide-y divide-gray-100">
-
                                 {products.map((product) => {
                                     const status = getProductStatus(
                                         Number(product.stock)
@@ -918,7 +914,6 @@ function AdminDashboard() {
                                             key={product.id}
                                             className="transition hover:bg-[#faf9f7]"
                                         >
-
                                             <td className="px-4 py-4 font-medium">
                                                 {product.name}
                                             </td>
@@ -939,20 +934,17 @@ function AdminDashboard() {
                                             </td>
 
                                             <td className="px-4 py-4">
-
                                                 <span
-                                                    className={`rounded px-2 py-1 text-[10px] ${
-                                                        status === "In Stock"
+                                                    className={`rounded px-2 py-1 text-[10px] ${status === "In Stock"
                                                             ? "bg-green-50 text-green-700"
                                                             : status ===
                                                                 "Low Stock"
-                                                              ? "bg-yellow-50 text-yellow-700"
-                                                              : "bg-red-50 text-red-600"
-                                                    }`}
+                                                                ? "bg-yellow-50 text-yellow-700"
+                                                                : "bg-red-50 text-red-600"
+                                                        }`}
                                                 >
                                                     {status}
                                                 </span>
-
                                             </td>
 
                                             <td className="px-4 py-4 text-gray-500">
@@ -960,9 +952,7 @@ function AdminDashboard() {
                                             </td>
 
                                             <td className="px-4 py-4">
-
                                                 <div className="flex gap-3">
-
                                                     <button
                                                         type="button"
                                                         onClick={() =>
@@ -986,19 +976,13 @@ function AdminDashboard() {
                                                     >
                                                         Delete
                                                     </button>
-
                                                 </div>
-
                                             </td>
-
                                         </tr>
                                     );
                                 })}
-
                             </tbody>
-
                         </table>
-
                     </div>
                 </section>
 
@@ -1006,9 +990,7 @@ function AdminDashboard() {
                     id="customers"
                     className="mt-5 scroll-mt-24 rounded-lg border border-gray-200 bg-white p-6"
                 >
-
                     <div className="flex items-center justify-between">
-
                         <div>
                             <h2 className="font-serif text-xl">
                                 Customers
@@ -1030,11 +1012,9 @@ function AdminDashboard() {
                         >
                             View All Customers
                         </button>
-
                     </div>
 
                     <div className="mt-6 grid gap-4 sm:grid-cols-3">
-
                         <div className="border border-gray-100 p-5">
                             <p className="text-xs text-gray-500">
                                 Total Customers
@@ -1064,18 +1044,14 @@ function AdminDashboard() {
                                 9,421
                             </p>
                         </div>
-
                     </div>
-
                 </section>
 
                 <section
                     id="reviews"
                     className="mt-5 scroll-mt-24 overflow-hidden rounded-lg border border-gray-200 bg-white"
                 >
-
                     <div className="flex items-center justify-between border-b border-gray-100 p-5">
-
                         <h2 className="font-serif text-xl">
                             Top Reviews
                         </h2>
@@ -1091,11 +1067,9 @@ function AdminDashboard() {
                         >
                             View All Reviews
                         </button>
-
                     </div>
 
                     <div className="divide-y divide-gray-100">
-
                         {[
                             [
                                 "Alexandra V.",
@@ -1123,7 +1097,6 @@ function AdminDashboard() {
                                 key={review[0]}
                                 className="grid gap-3 p-5 transition hover:bg-[#faf9f7] md:grid-cols-[150px_180px_110px_1fr_110px]"
                             >
-
                                 <div>
                                     <p className="text-xs font-medium">
                                         {review[0]}
@@ -1149,16 +1122,12 @@ function AdminDashboard() {
                                 <p className="text-[10px] text-gray-400">
                                     {review[4]}
                                 </p>
-
                             </div>
                         ))}
-
                     </div>
-
                 </section>
 
                 <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
-
                     <div>
                         <p className="text-xs text-gray-400">
                             Logged in as
@@ -1176,9 +1145,7 @@ function AdminDashboard() {
                     >
                         Logout
                     </button>
-
                 </div>
-
             </div>
 
             <AdminModal
@@ -1189,7 +1156,6 @@ function AdminDashboard() {
                 saveProduct={saveProduct}
                 deleteProduct={deleteProduct}
             />
-
         </div>
     );
 }
@@ -1221,7 +1187,6 @@ function AdminModal({
                         event.stopPropagation()
                     }
                 >
-
                     <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-black text-sm">
                         ▥
                     </div>
@@ -1244,7 +1209,6 @@ function AdminModal({
                     </p>
 
                     <div className="mt-6 grid grid-cols-2 gap-3">
-
                         <button
                             type="button"
                             onClick={close}
@@ -1260,9 +1224,7 @@ function AdminModal({
                         >
                             DELETE
                         </button>
-
                     </div>
-
                 </div>
             </div>
         );
@@ -1280,7 +1242,6 @@ function AdminModal({
                         event.stopPropagation()
                     }
                 >
-
                     <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-black text-sm">
                         ✓
                     </div>
@@ -1304,7 +1265,6 @@ function AdminModal({
                     >
                         OK
                     </button>
-
                 </div>
             </div>
         );
@@ -1322,7 +1282,6 @@ function AdminModal({
                         event.stopPropagation()
                     }
                 >
-
                     <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
                         FASCO
                     </p>
@@ -1337,7 +1296,6 @@ function AdminModal({
                         onSubmit={saveProduct}
                         className="mt-6 space-y-3"
                     >
-
                         <label className="block text-xs">
                             Product Name
 
@@ -1356,7 +1314,6 @@ function AdminModal({
                         </label>
 
                         <div className="grid grid-cols-2 gap-3">
-
                             <label className="block text-xs">
                                 Category
 
@@ -1399,7 +1356,6 @@ function AdminModal({
                                     placeholder="0.00"
                                 />
                             </label>
-
                         </div>
 
                         <label className="block text-xs">
@@ -1423,7 +1379,6 @@ function AdminModal({
                         </label>
 
                         <div className="grid grid-cols-2 gap-3 pt-3">
-
                             <button
                                 type="button"
                                 onClick={close}
@@ -1440,11 +1395,8 @@ function AdminModal({
                                     ? "SAVE CHANGES"
                                     : "ADD PRODUCT"}
                             </button>
-
                         </div>
-
                     </form>
-
                 </div>
             </div>
         );
@@ -1464,7 +1416,6 @@ function AdminModal({
                         event.stopPropagation()
                     }
                 >
-
                     <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
                         FASCO
                     </p>
@@ -1474,7 +1425,6 @@ function AdminModal({
                     </h2>
 
                     <div className="mt-6 space-y-3 border border-[#eeeae5] p-4 text-xs">
-
                         <div className="flex justify-between gap-4">
                             <span>Order ID</span>
                             <span>{order?.[0]}</span>
@@ -1501,10 +1451,14 @@ function AdminModal({
                         </div>
 
                         <div className="flex justify-between gap-4">
+                            <span>Payment</span>
+                            <span>{order?.[5]}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
                             <span>Status</span>
                             <span>{order?.[6]}</span>
                         </div>
-
                     </div>
 
                     <button
@@ -1514,7 +1468,6 @@ function AdminModal({
                     >
                         OK
                     </button>
-
                 </div>
             </div>
         );
@@ -1525,77 +1478,85 @@ function AdminModal({
             title: "Customers",
             description:
                 "Customer overview and account activity.",
-
-            rows: [
-                [
-                    "Alexandra V.",
-                    "alexandra@example.com",
-                    "Active",
-                ],
-                [
-                    "Jonathan M.",
-                    "jonathan@example.com",
-                    "Active",
-                ],
-                [
-                    "Sophia L.",
-                    "sophia@example.com",
-                    "Active",
-                ],
-                [
-                    "David K.",
-                    "david@example.com",
-                    "Pending",
-                ],
-            ],
+            rows:
+                customers.length > 0
+                    ? customers.map((customer) => [
+                        customer.name || "Customer",
+                        customer.email || "—",
+                        customer.status || "Active",
+                    ])
+                    : [
+                        [
+                            "Alexandra V.",
+                            "alexandra@example.com",
+                            "Active",
+                        ],
+                        [
+                            "Jonathan M.",
+                            "jonathan@example.com",
+                            "Active",
+                        ],
+                        [
+                            "Sophia L.",
+                            "sophia@example.com",
+                            "Active",
+                        ],
+                        [
+                            "David K.",
+                            "david@example.com",
+                            "Pending",
+                        ],
+                    ],
         },
 
         reviews: {
             title: "All Reviews",
             description:
                 "Recent customer reviews for FASCO products.",
-
-            rows: [
-                [
-                    "Alexandra V.",
-                    "The Structured Tote",
-                    "★★★★★",
-                ],
-                [
-                    "Jonathan M.",
-                    "Linen Blazer",
-                    "★★★★☆",
-                ],
-                [
-                    "Sophia L.",
-                    "Silk Shirt",
-                    "★★★★★",
-                ],
-            ],
+            rows:
+                reviews.length > 0
+                    ? reviews.map((review) => [
+                        review.userName ||
+                        review.customerName ||
+                        "Customer",
+                        review.productName ||
+                        "Product",
+                        review.rating
+                            ? "★".repeat(
+                                Math.min(
+                                    Number(review.rating),
+                                    5
+                                )
+                            )
+                            : "★★★★★",
+                    ])
+                    : [
+                        [
+                            "Alexandra V.",
+                            "The Structured Tote",
+                            "★★★★★",
+                        ],
+                        [
+                            "Jonathan M.",
+                            "Linen Blazer",
+                            "★★★★☆",
+                        ],
+                        [
+                            "Sophia L.",
+                            "Silk Shirt",
+                            "★★★★★",
+                        ],
+                    ],
         },
 
         orders: {
             title: "All Orders",
-            description:
-                "Recent FASCO orders.",
-
-            rows: [
-                [
-                    "#ORD-8924A",
-                    "Alexandra V.",
-                    "$320.00",
-                ],
-                [
-                    "#ORD-7712B",
-                    "Jonathan M.",
-                    "$189.00",
-                ],
-                [
-                    "#ORD-5632C",
-                    "Sophia L.",
-                    "$129.00",
-                ],
-            ],
+            description: "Recent FASCO orders.",
+            rows: displayOrders.map((order) => [
+                order[0],
+                order[1],
+                order[4],
+            ]),
         },
     };
 
@@ -1613,7 +1574,6 @@ function AdminModal({
                         event.stopPropagation()
                     }
                 >
-
                     <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
                         FASCO
                     </p>
@@ -1627,18 +1587,17 @@ function AdminModal({
                     </p>
 
                     <div className="mt-6 overflow-hidden border border-[#eeeae5]">
-
-                        {data.rows.map((row) => (
+                        {data.rows.map((row, index) => (
                             <div
-                                key={row.join("-")}
+                                key={`${row.join("-")}-${index}`}
                                 className="grid grid-cols-[1fr_1fr_auto] gap-4 border-b border-[#eeeae5] px-4 py-3 text-xs last:border-b-0"
                             >
-
-                                {row.map((value, index) => (
+                                {row.map((value, valueIndex) => (
                                     <span
-                                        key={index}
+                                        key={valueIndex}
                                         className={
-                                            index === row.length - 1
+                                            valueIndex ===
+                                                row.length - 1
                                                 ? "text-right text-[#77736d]"
                                                 : ""
                                         }
@@ -1646,10 +1605,8 @@ function AdminModal({
                                         {value}
                                     </span>
                                 ))}
-
                             </div>
                         ))}
-
                     </div>
 
                     <button
@@ -1659,7 +1616,6 @@ function AdminModal({
                     >
                         OK
                     </button>
-
                 </div>
             </div>
         );
