@@ -7,8 +7,15 @@ export const getUserOrders = async () => {
         method: "GET",
         headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
         },
     });
 
-    return response.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch orders");
+    }
+
+    return data;
 };

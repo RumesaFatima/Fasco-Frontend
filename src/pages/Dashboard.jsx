@@ -51,14 +51,23 @@ function Dashboard() {
 
   useEffect(() => {
     const loadOrders = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       try {
         const data = await getUserOrders();
 
-        if (Array.isArray(data)) {
-          setOrders(data);
-        } else {
+        if (!Array.isArray(data)) {
+          console.error("Orders API response:", data);
           setOrders([]);
+          return;
         }
+
+        setOrders(data);
       } catch (error) {
         console.error("Failed to load orders:", error);
         setOrders([]);
@@ -66,7 +75,7 @@ function Dashboard() {
     };
 
     loadOrders();
-  }, []);
+  }, [navigate]);
 
   const logout = () => {
     localStorage.removeItem("token");
