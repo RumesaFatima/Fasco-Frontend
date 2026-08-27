@@ -21,9 +21,7 @@ const LINES_KEY = "fasco_cart";
 export function StoreProvider({ children }) {
     const [lines, setLines] = useState(() => {
         try {
-            return JSON.parse(
-                localStorage.getItem(LINES_KEY) || "[]"
-            );
+            return JSON.parse(localStorage.getItem(LINES_KEY) || "[]");
         } catch {
             return [];
         }
@@ -40,23 +38,34 @@ export function StoreProvider({ children }) {
     const [toasts, setToasts] = useState([]);
 
     useEffect(() => {
-        localStorage.setItem(
-            LINES_KEY,
-            JSON.stringify(lines)
-        );
+        localStorage.setItem(LINES_KEY, JSON.stringify(lines));
     }, [lines]);
 
     const toast = useCallback((msg, type = "error") => {
+        if (!msg) return;
+
         const id = Date.now() + Math.random();
 
-        setToasts((current) => [
-            ...current,
-            {
-                id,
-                msg,
-                type,
-            },
-        ]);
+        setToasts((current) => {
+            if (
+                current.some(
+                    (item) =>
+                        item.msg === msg &&
+                        item.type === type
+                )
+            ) {
+                return current;
+            }
+
+            return [
+                ...current,
+                {
+                    id,
+                    msg,
+                    type,
+                },
+            ];
+        });
     }, []);
 
     const closeToast = useCallback((id) => {
@@ -72,7 +81,6 @@ export function StoreProvider({ children }) {
                     "Please login to add products to your cart.",
                     "error"
                 );
-
                 return false;
             }
 
@@ -156,11 +164,9 @@ export function StoreProvider({ children }) {
         []
     );
 
-
     const clear = useCallback(() => {
         setLines([]);
     }, []);
-
 
     const setUser = useCallback((u, token) => {
         if (u && token) {
@@ -187,15 +193,12 @@ export function StoreProvider({ children }) {
         setUserState(null);
     }, []);
 
-
     const { count, subtotal } = useMemo(() => {
         let c = 0;
         let s = 0;
 
         for (const line of lines) {
-            const product = findProduct(
-                line.productId
-            );
+            const product = findProduct(line.productId);
 
             if (!product) continue;
 
@@ -221,12 +224,7 @@ export function StoreProvider({ children }) {
             ? 10 * Math.max(1, lines.length)
             : 0;
 
-    const total =
-        subtotal +
-        shipping +
-        wrapCost;
-
-
+    const total = subtotal + shipping + wrapCost;
 
     const placeOrder = useCallback(
         async (address, discount, email) => {
@@ -235,15 +233,12 @@ export function StoreProvider({ children }) {
                     "Please login to continue to checkout.",
                     "error"
                 );
-
                 return null;
             }
 
             const ordLines = lines
                 .map((line) => {
-                    const product = findProduct(
-                        line.productId
-                    );
+                    const product = findProduct(line.productId);
 
                     if (!product) return null;
 
@@ -259,27 +254,37 @@ export function StoreProvider({ children }) {
                 })
                 .filter(Boolean);
 
-            const order = await api.addOrder(
-                user.email ||
-                email ||
-                "guest@fasco.demo",
-                {
-                    lines: ordLines,
-                    subtotal,
-                    discount,
-                    shipping,
-                    total: Math.max(
-                        0,
-                        total - discount
-                    ),
-                    address,
-                }
-            );
+            try {
+                const order = await api.addOrder(
+                    user.email ||
+                    email ||
+                    "guest@fasco.demo",
+                    {
+                        lines: ordLines,
+                        subtotal,
+                        discount,
+                        shipping,
+                        total: Math.max(
+                            0,
+                            total - discount
+                        ),
+                        address,
+                    }
+                );
 
-            setLines([]);
-            setWrap(false);
+                setLines([]);
+                setWrap(false);
 
-            return order;
+                return order;
+            } catch (error) {
+                toast(
+                    error?.message ||
+                    "Unable to place your order. Please try again.",
+                    "error"
+                );
+
+                return null;
+            }
         },
         [
             user,
@@ -296,7 +301,6 @@ export function StoreProvider({ children }) {
 
         return api.orders(user.email);
     }, [user]);
-
 
     const value = {
         lines,

@@ -25,6 +25,7 @@ async function call(path, options = {}) {
     }
 
     const contentType = response.headers.get("content-type") || "";
+
     const data = contentType.includes("application/json")
         ? await response.json().catch(() => ({}))
         : await response.text().catch(() => "");
@@ -50,23 +51,35 @@ const post = (body) => ({
 
 export const api = {
     signup: (body) => call("/auth/signup", post(body)),
+
     login: (body) => call("/auth/login", post(body)),
+
     forgot: (body) => call("/auth/forgot", post(body)),
+
     verify: (body) => call("/auth/verify", post(body)),
+
     reset: (body) => call("/auth/reset", post(body)),
 
     products: (query = {}) => {
         const params = new URLSearchParams();
 
-        if (query.search) params.set("search", query.search);
+        if (query.search) {
+            params.set("search", query.search);
+        }
+
         if (query.category && query.category !== "All") {
             params.set("category", query.category);
         }
-        if (query.sort) params.set("sort", query.sort);
+
+        if (query.sort) {
+            params.set("sort", query.sort);
+        }
 
         const queryString = params.toString();
 
-        return call(`/products${queryString ? `?${queryString}` : ""}`);
+        return call(
+            `/products${queryString ? `?${queryString}` : ""}`
+        );
     },
 
     addOrder: (email, order) =>
@@ -79,11 +92,13 @@ export const api = {
         ),
 
     orders: (email) =>
-        call(`/orders?email=${encodeURIComponent(email)}`),
+        call(
+            `/orders?email=${encodeURIComponent(email)}`
+        ),
 
     subscribe: (email) =>
         call(
-            "/newsletter",
+            "/newsletter/subscribe",
             post({
                 email,
             })
@@ -93,7 +108,9 @@ export const api = {
         call("/reviews", post(body)),
 
     reviews: (productId) =>
-        call(`/reviews/${encodeURIComponent(productId)}`),
+        call(
+            `/reviews/product/${encodeURIComponent(productId)}`
+        ),
 };
 
 export function getSession() {
@@ -101,7 +118,9 @@ export function getSession() {
         const token = localStorage.getItem("token");
         const rawUser = localStorage.getItem("user");
 
-        if (!token || !rawUser) return null;
+        if (!token || !rawUser) {
+            return null;
+        }
 
         return {
             token,
@@ -120,7 +139,10 @@ export function saveSession(res) {
     }
 
     if (res.user) {
-        localStorage.setItem("user", JSON.stringify(res.user));
+        localStorage.setItem(
+            "user",
+            JSON.stringify(res.user)
+        );
     }
 }
 

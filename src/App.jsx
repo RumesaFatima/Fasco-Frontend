@@ -29,6 +29,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import PaymentSuccessful from "./pages/PaymentSuccessful";
 import PaymentCancelled from "./pages/PaymentCancelled";
+
 const BARE = [
   "/login",
   "/signup",
@@ -73,10 +74,10 @@ function AuthBridge() {
       const normalized = user.firstName
         ? user
         : {
-          ...user,
-          firstName: parts[0] || "",
-          lastName: parts.slice(1).join(" ") || "",
-        };
+            ...user,
+            firstName: parts[0] || "",
+            lastName: parts.slice(1).join(" ") || "",
+          };
 
       setUser(normalized, token);
     } catch {
@@ -86,6 +87,7 @@ function AuthBridge() {
 
   return null;
 }
+
 function Toasts() {
   const { toasts, closeToast } = useStore();
 
@@ -131,14 +133,17 @@ function Shell() {
   const { pathname } = useLocation();
 
   const bare = BARE.some(
-    (path) => pathname === path || pathname.startsWith(path + "/")
+    (path) =>
+      pathname === path ||
+      pathname.startsWith(path + "/")
   );
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
-
       {bare && <AuthStyles />}
 
       {!bare && <Navbar />}
+
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -151,26 +156,27 @@ function Shell() {
           <Route path="/account" element={<Account />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+
           <Route
             path="/forgot-password"
             element={<ForgotPassword />}
           />
+
           <Route
             path="/reset-password/:token"
             element={<ResetPassword />}
           />
+
           <Route
             path="/dashboard"
             element={<Dashboard />}
           />
+
           <Route
             path="/admin"
             element={<AdminDashboard />}
           />
-          <Route
-            path="*"
-            element={<Home />}
-          />
+
           <Route
             path="/payment-success"
             element={<PaymentSuccessful />}
@@ -181,8 +187,13 @@ function Shell() {
             element={<PaymentCancelled />}
           />
 
+          <Route
+            path="*"
+            element={<Home />}
+          />
         </Routes>
       </main>
+
       {!bare && <Footer />}
 
       <CartDrawer />
