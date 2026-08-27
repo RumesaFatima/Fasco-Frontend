@@ -176,10 +176,7 @@ function Shell() {
             path="/admin"
             element={<AdminDashboard />}
           />
-          <Route
-            path="/admin/products"
-            element={<ProductPage />}
-          />
+         
           <Route
             path="/payment-success"
             element={<PaymentSuccessful />}

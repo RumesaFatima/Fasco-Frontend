@@ -53,6 +53,13 @@ const request = async (endpoint, options = {}) => {
 
     return data;
 };
+export const getProducts = async () => {
+    return request("/admin/products");
+};
+
+export const getProductById = async (productId) => {
+    return request(`/admin/products/${productId}`);
+};
 
 export const createProduct = async (productData) => {
     return request("/admin/products", {
