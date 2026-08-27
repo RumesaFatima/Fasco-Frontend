@@ -1,6 +1,6 @@
 const API_BASE = (
     import.meta.env.VITE_API_BASE_URL ||
-    "https://fasco-backend-bzmjzvi6c-webcoder12.vercel.app/api"
+    "https://fasco-backend-two.vercel.app/api"
 ).replace(/\/+$/, "");
 
 async function request(path, options = {}) {
@@ -12,21 +12,25 @@ async function request(path, options = {}) {
         ...options,
         headers: {
             Accept: "application/json",
+
             ...(options.body
                 ? {
                     "Content-Type": "application/json",
                 }
                 : {}),
+
             ...(token
                 ? {
                     Authorization: `Bearer ${token}`,
                 }
                 : {}),
+
             ...(options.headers || {}),
         },
     });
 
-    const contentType = response.headers.get("content-type") || "";
+    const contentType =
+        response.headers.get("content-type") || "";
 
     const data = contentType.includes("application/json")
         ? await response.json().catch(() => ({}))

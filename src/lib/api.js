@@ -1,6 +1,6 @@
 const API_BASE = (
     import.meta.env.VITE_API_BASE_URL ||
-    "https://fasco-backend-bzmjzvi6c-webcoder12.vercel.app/api"
+    "https://fasco-backend-two.vercel.app/api"
 ).replace(/\/+$/, "");
 
 async function call(path, options = {}) {
@@ -21,7 +21,9 @@ async function call(path, options = {}) {
             headers,
         });
     } catch {
-        throw new Error("Failed to fetch. Please check your internet connection.");
+        throw new Error(
+            "Failed to fetch. Please check your internet connection."
+        );
     }
 
     const contentType = response.headers.get("content-type") || "";
