@@ -6,8 +6,6 @@ import {
     getDashboardStats,
 } from "../services/adminAuthApi";
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
 function Icon({ name, size = 18, strokeWidth = 1.8 }) {
     const common = {
@@ -789,7 +787,6 @@ function AdminDashboard() {
     if (loading) {
         return (
             <>
-                <Navbar />
 
                 <div className="flex min-h-[70vh] items-center justify-center bg-[#faf9f7]">
                     <div className="text-center">
@@ -801,7 +798,6 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                <Footer />
             </>
         );
     }
@@ -809,7 +805,6 @@ function AdminDashboard() {
 
     return (
         <>
-            <Navbar />
 
             <div className="min-h-screen bg-[#faf9f7] text-[#171717]">
                 <main className="mx-auto w-full max-w-[1450px] px-5 py-8 sm:px-7 lg:px-10 xl:px-12">
@@ -2032,7 +2027,6 @@ function AdminDashboard() {
                 navigate={navigate}
             />
 
-            <Footer />
         </>
     );
 }

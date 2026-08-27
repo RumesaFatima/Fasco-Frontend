@@ -74,10 +74,10 @@ function AuthBridge() {
       const normalized = user.firstName
         ? user
         : {
-            ...user,
-            firstName: parts[0] || "",
-            lastName: parts.slice(1).join(" ") || "",
-          };
+          ...user,
+          firstName: parts[0] || "",
+          lastName: parts.slice(1).join(" ") || "",
+        };
 
       setUser(normalized, token);
     } catch {
@@ -176,7 +176,10 @@ function Shell() {
             path="/admin"
             element={<AdminDashboard />}
           />
-
+          <Route
+            path="/admin/products"
+            element={<ProductPage />}
+          />
           <Route
             path="/payment-success"
             element={<PaymentSuccessful />}
