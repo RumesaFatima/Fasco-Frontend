@@ -13,11 +13,10 @@ function NavItem({ to, label, active }) {
   return (
     <Link
       to={to}
-      className={`text-[15px] transition-colors hover:text-ink ${
-        active
-          ? "text-ink underline decoration-1 underline-offset-10"
-          : "text-gray-500"
-      }`}
+      className={`text-[15px] transition-colors hover:text-ink ${active
+        ? "text-ink underline decoration-1 underline-offset-10"
+        : "text-gray-500"
+        }`}
     >
       {label}
     </Link>
@@ -70,9 +69,13 @@ export default function Navbar() {
           />
 
           <NavItem
-            to="/shop"
+            to={user?.isAdmin === true ? "/admin/products" : "/shop"}
             label="Products"
-            active={pathname.startsWith("/product")}
+            active={
+              user?.isAdmin === true
+                ? pathname.startsWith("/admin/products")
+                : pathname === "/shop"
+            }
           />
 
           <div className="group relative">
@@ -134,9 +137,21 @@ export default function Navbar() {
           </div>
 
           <Link
-            to={user ? "/dashboard" : "/login"}
+            to={
+              user
+                ? user.isAdmin === true
+                  ? "/admin"
+                  : "/dashboard"
+                : "/login"
+            }
             className="transition-transform hover:scale-110"
-            aria-label={user ? "dashboard" : "login"}
+            aria-label={
+              user
+                ? user.isAdmin === true
+                  ? "admin dashboard"
+                  : "dashboard"
+                : "login"
+            }
           >
             <UserIc />
           </Link>
