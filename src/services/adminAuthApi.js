@@ -1,37 +1,46 @@
-const API_URL = "https://fasco-backend-two.vercel.app/api/admin";
-export const adminLogin = async (credentials) => {
-    const response = await fetch(`${API_URL}/login`, {
-        method: "POST",
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+const getToken = () => localStorage.getItem("adminToken");
+
+const request = async (url, options = {}) => {
+    const token = getToken();
+
+    const response = await fetch(`${API_URL}${url}`, {
+        ...options,
         headers: {
             "Content-Type": "application/json",
+            ...(token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                }
+                : {}),
+            ...(options.headers || {}),
         },
-        body: JSON.stringify(credentials),
     });
 
-    return response.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data?.message || "Request failed");
+    }
+
+    return data;
+};
+
+export const adminLogin = async (email, password) => {
+    return request("/admin/login", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            password,
+        }),
+    });
 };
 
 export const getAdminProfile = async () => {
-    const token = localStorage.getItem("adminToken");
-
-    const response = await fetch(`${API_URL}/profile`, {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    return response.json();
+    return request("/admin/profile");
 };
+
 export const getDashboardStats = async () => {
-    const token = localStorage.getItem("adminToken");
-
-    const response = await fetch(`${API_URL}/dashboard`, {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    return response.json();
+    return request("/admin/dashboard");
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     getAdminProfile,
@@ -26,6 +26,7 @@ function AdminDashboard() {
     const [customers, setCustomers] = useState([]);
     const [reviews, setReviews] = useState([]);
     const [products, setProducts] = useState([]);
+    const [revenue, setRevenue] = useState([]);
     const [revenuePeriod, setRevenuePeriod] = useState("month");
     const [modal, setModal] = useState(null);
 
@@ -60,11 +61,21 @@ function AdminDashboard() {
                 }
 
                 setStats({
-                    totalUsers: Number(dashboardData.stats?.totalUsers || 0),
-                    totalProducts: Number(dashboardData.stats?.totalProducts || 0),
-                    totalOrders: Number(dashboardData.stats?.totalOrders || 0),
-                    totalSales: Number(dashboardData.stats?.totalSales || 0),
-                    pendingOrders: Number(dashboardData.stats?.pendingOrders || 0),
+                    totalUsers: Number(
+                        dashboardData.stats?.totalUsers || 0
+                    ),
+                    totalProducts: Number(
+                        dashboardData.stats?.totalProducts || 0
+                    ),
+                    totalOrders: Number(
+                        dashboardData.stats?.totalOrders || 0
+                    ),
+                    totalSales: Number(
+                        dashboardData.stats?.totalSales || 0
+                    ),
+                    pendingOrders: Number(
+                        dashboardData.stats?.pendingOrders || 0
+                    ),
                     lowStockProducts: Number(
                         dashboardData.stats?.lowStockProducts || 0
                     ),
@@ -97,6 +108,12 @@ function AdminDashboard() {
                 setProducts(
                     Array.isArray(dashboardData.products)
                         ? dashboardData.products
+                        : []
+                );
+
+                setRevenue(
+                    Array.isArray(dashboardData.revenue)
+                        ? dashboardData.revenue
                         : []
                 );
             } catch (error) {
@@ -205,6 +222,79 @@ function AdminDashboard() {
         raw: order,
     }));
 
+    const filteredRevenue = useMemo(() => {
+        const now = new Date();
+
+        if (revenuePeriod === "year") {
+            return revenue.filter((item) => {
+                const [year] = String(item.month)
+                    .split("-")
+                    .map(Number);
+
+                return year === now.getFullYear();
+            });
+        }
+
+        if (revenuePeriod === "month") {
+            return revenue.filter((item) => {
+                const [year, month] = String(item.month)
+                    .split("-")
+                    .map(Number);
+
+                return (
+                    year === now.getFullYear() &&
+                    month === now.getMonth() + 1
+                );
+            });
+        }
+
+        const weekStart = new Date(now);
+        weekStart.setDate(
+            now.getDate() - now.getDay()
+        );
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+
+        return revenue.filter((item) => {
+            const [year, month] = String(item.month)
+                .split("-")
+                .map(Number);
+
+            const date = new Date(
+                year,
+                month - 1,
+                1
+            );
+
+            return date >= weekStart && date < weekEnd;
+        });
+    }, [revenue, revenuePeriod]);
+
+    const chartData =
+        filteredRevenue.length > 0
+            ? filteredRevenue
+            : revenue.slice(-12);
+
+    const chartMax = Math.max(
+        ...chartData.map((item) =>
+            Number(item.amount || 0)
+        ),
+        1
+    );
+
+    const periodRevenue = filteredRevenue.reduce(
+        (total, item) => {
+            const amount = Number(item.amount || 0);
+
+            return total + (
+                Number.isFinite(amount) ? amount : 0
+            );
+        },
+        0
+    );
+
     const openOrder = (order) => {
         setModal({
             type: "order",
@@ -229,8 +319,6 @@ function AdminDashboard() {
             type: "products",
         });
     };
-
-    const revenueValue = Number(stats.totalSales || 0);
 
     if (loading) {
         return (
@@ -285,10 +373,18 @@ function AdminDashboard() {
                         onClick={() => goTo("orders")}
                         className="rounded-lg border border-gray-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm"
                     >
-                        <p className="text-xs text-gray-500">Total Sales</p>
+                        <p className="text-xs text-gray-500">
+                            Total Sales
+                        </p>
 
                         <p className="mt-3 font-serif text-2xl">
-                            ${revenueValue.toLocaleString()}
+                            ${stats.totalSales.toLocaleString(
+                                "en-US",
+                                {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }
+                            )}
                         </p>
 
                         <p className="mt-2 text-[11px] text-gray-400">
@@ -301,7 +397,9 @@ function AdminDashboard() {
                         onClick={() => goTo("orders")}
                         className="rounded-lg border border-gray-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm"
                     >
-                        <p className="text-xs text-gray-500">Total Orders</p>
+                        <p className="text-xs text-gray-500">
+                            Total Orders
+                        </p>
 
                         <p className="mt-3 font-serif text-2xl">
                             {stats.totalOrders}
@@ -401,81 +499,75 @@ function AdminDashboard() {
                             </h2>
 
                             <p className="mt-1 text-xs text-gray-500">
-                                Real revenue calculated from paid orders.
+                                Revenue calculated from paid orders.
                             </p>
                         </div>
 
                         <div className="flex gap-6 text-xs text-gray-500">
-                            {["week", "month", "year"].map((period) => (
-                                <button
-                                    key={period}
-                                    type="button"
-                                    onClick={() =>
-                                        setRevenuePeriod(period)
-                                    }
-                                    className={
-                                        revenuePeriod === period
-                                            ? "border-b border-black pb-1 font-medium text-black"
-                                            : "transition hover:text-black"
-                                    }
-                                >
-                                    {period === "week"
-                                        ? "This Week"
-                                        : period === "month"
-                                            ? "This Month"
-                                            : "This Year"}
-                                </button>
-                            ))}
+                            {["week", "month", "year"].map(
+                                (period) => (
+                                    <button
+                                        key={period}
+                                        type="button"
+                                        onClick={() =>
+                                            setRevenuePeriod(period)
+                                        }
+                                        className={
+                                            revenuePeriod === period
+                                                ? "border-b border-black pb-1 font-medium text-black"
+                                                : "transition hover:text-black"
+                                        }
+                                    >
+                                        {period === "week"
+                                            ? "This Week"
+                                            : period === "month"
+                                                ? "This Month"
+                                                : "This Year"}
+                                    </button>
+                                )
+                            )}
                         </div>
                     </div>
 
                     <div className="mt-7">
                         <p className="text-[11px] text-gray-500">
-                            Total Revenue
+                            {revenuePeriod === "year"
+                                ? "Year Revenue"
+                                : revenuePeriod === "month"
+                                    ? "Month Revenue"
+                                    : "Week Revenue"}
                         </p>
 
                         <p className="mt-1 font-serif text-3xl">
-                            ${revenueValue.toLocaleString()}
+                            $
+                            {(
+                                filteredRevenue.length > 0
+                                    ? periodRevenue
+                                    : stats.totalSales
+                            ).toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </p>
 
                         <div className="mt-7 h-[220px] overflow-hidden">
-                            <div className="flex h-full items-end gap-2">
-                                {displayOrders.length > 0 ? (
-                                    displayOrders
-                                        .slice(0, 12)
-                                        .reverse()
-                                        .map((order, index) => {
+                            {chartData.length > 0 ? (
+                                <div className="flex h-full items-end gap-2">
+                                    {chartData.map(
+                                        (item, index) => {
                                             const amount = Number(
-                                                order.raw?.total ??
-                                                order.raw?.totalAmount ??
-                                                order.raw?.amount ??
-                                                order.raw?.grandTotal ??
-                                                0
-                                            );
-
-                                            const max = Math.max(
-                                                ...displayOrders
-                                                    .slice(0, 12)
-                                                    .map((item) =>
-                                                        Number(
-                                                            item.raw?.total ??
-                                                            item.raw?.totalAmount ??
-                                                            item.raw?.amount ??
-                                                            item.raw?.grandTotal ??
-                                                            0
-                                                        )
-                                                    ),
-                                                1
+                                                item.amount || 0
                                             );
 
                                             const height = Math.max(
                                                 8,
-                                                (amount / max) * 100
+                                                (amount / chartMax) *
+                                                100
                                             );
 
                                             return (
                                                 <div
-                                                    key={`${order.id}-${index}`}
+                                                    key={`${item.month}-${index}`}
                                                     className="flex h-full flex-1 items-end"
                                                 >
                                                     <div
@@ -483,17 +575,18 @@ function AdminDashboard() {
                                                         style={{
                                                             height: `${height}%`,
                                                         }}
-                                                        title={`${order.date} - ${order.amount}`}
+                                                        title={`${item.month}: $${amount.toFixed(2)}`}
                                                     />
                                                 </div>
                                             );
-                                        })
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
-                                        No order revenue data available.
-                                    </div>
-                                )}
-                            </div>
+                                        }
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
+                                    No revenue data available.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -535,56 +628,58 @@ function AdminDashboard() {
 
                             <tbody className="divide-y divide-gray-100">
                                 {displayOrders.length > 0 ? (
-                                    displayOrders.slice(0, 5).map((order) => (
-                                        <tr
-                                            key={order.id}
-                                            className="transition hover:bg-[#faf9f7]"
-                                        >
-                                            <td className="px-4 py-4 font-medium">
-                                                {order.id}
-                                            </td>
+                                    displayOrders
+                                        .slice(0, 5)
+                                        .map((order) => (
+                                            <tr
+                                                key={order.id}
+                                                className="transition hover:bg-[#faf9f7]"
+                                            >
+                                                <td className="px-4 py-4 font-medium">
+                                                    {order.id}
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                {order.customer}
-                                            </td>
+                                                <td className="px-4 py-4">
+                                                    {order.customer}
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                {order.product}
-                                            </td>
+                                                <td className="px-4 py-4">
+                                                    {order.product}
+                                                </td>
 
-                                            <td className="px-4 py-4 text-gray-500">
-                                                {order.date}
-                                            </td>
+                                                <td className="px-4 py-4 text-gray-500">
+                                                    {order.date}
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                {order.amount}
-                                            </td>
+                                                <td className="px-4 py-4">
+                                                    {order.amount}
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                <span className="rounded bg-gray-100 px-2 py-1 text-[10px]">
-                                                    {order.payment}
-                                                </span>
-                                            </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="rounded bg-gray-100 px-2 py-1 text-[10px]">
+                                                        {order.payment}
+                                                    </span>
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                <span className="rounded bg-gray-100 px-2 py-1 text-[10px]">
-                                                    {order.status}
-                                                </span>
-                                            </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="rounded bg-gray-100 px-2 py-1 text-[10px]">
+                                                        {order.status}
+                                                    </span>
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        openOrder(order)
-                                                    }
-                                                    className="text-gray-500 hover:text-black hover:underline"
-                                                >
-                                                    View
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                <td className="px-4 py-4">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            openOrder(order)
+                                                        }
+                                                        className="text-gray-500 hover:text-black hover:underline"
+                                                    >
+                                                        View
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
                                 ) : (
                                     <tr>
                                         <td
@@ -633,66 +728,70 @@ function AdminDashboard() {
 
                             <tbody className="divide-y divide-gray-100">
                                 {products.length > 0 ? (
-                                    products.slice(0, 10).map((product) => {
-                                        const stock = Number(
-                                            product.stock ?? 0
-                                        );
+                                    products
+                                        .slice(0, 10)
+                                        .map((product) => {
+                                            const stock = Number(
+                                                product.stock ?? 0
+                                            );
 
-                                        const status =
-                                            getProductStatus(stock);
+                                            const status =
+                                                getProductStatus(stock);
 
-                                        return (
-                                            <tr
-                                                key={
-                                                    product._id ||
-                                                    product.id
-                                                }
-                                                className="transition hover:bg-[#faf9f7]"
-                                            >
-                                                <td className="px-4 py-4 font-medium">
-                                                    {product.name ||
-                                                        product.title ||
-                                                        "Product"}
-                                                </td>
+                                            return (
+                                                <tr
+                                                    key={
+                                                        product._id ||
+                                                        product.id
+                                                    }
+                                                    className="transition hover:bg-[#faf9f7]"
+                                                >
+                                                    <td className="px-4 py-4 font-medium">
+                                                        {product.name ||
+                                                            product.title ||
+                                                            "Product"}
+                                                    </td>
 
-                                                <td className="px-4 py-4 text-gray-500">
-                                                    {product.category || "—"}
-                                                </td>
+                                                    <td className="px-4 py-4 text-gray-500">
+                                                        {product.category ||
+                                                            "—"}
+                                                    </td>
 
-                                                <td className="px-4 py-4">
-                                                    $
-                                                    {Number(
-                                                        product.price ?? 0
-                                                    ).toFixed(2)}
-                                                </td>
+                                                    <td className="px-4 py-4">
+                                                        $
+                                                        {Number(
+                                                            product.price ??
+                                                            0
+                                                        ).toFixed(2)}
+                                                    </td>
 
-                                                <td className="px-4 py-4">
-                                                    {stock}
-                                                </td>
+                                                    <td className="px-4 py-4">
+                                                        {stock}
+                                                    </td>
 
-                                                <td className="px-4 py-4">
-                                                    <span
-                                                        className={`rounded px-2 py-1 text-[10px] ${status ===
-                                                                "In Stock"
-                                                                ? "bg-green-50 text-green-700"
-                                                                : status ===
-                                                                    "Low Stock"
-                                                                    ? "bg-yellow-50 text-yellow-700"
-                                                                    : "bg-red-50 text-red-600"
-                                                            }`}
-                                                    >
-                                                        {status}
-                                                    </span>
-                                                </td>
+                                                    <td className="px-4 py-4">
+                                                        <span
+                                                            className={`rounded px-2 py-1 text-[10px] ${status ===
+                                                                    "In Stock"
+                                                                    ? "bg-green-50 text-green-700"
+                                                                    : status ===
+                                                                        "Low Stock"
+                                                                        ? "bg-yellow-50 text-yellow-700"
+                                                                        : "bg-red-50 text-red-600"
+                                                                }`}
+                                                        >
+                                                            {status}
+                                                        </span>
+                                                    </td>
 
-                                                <td className="px-4 py-4 text-gray-500">
-                                                    {formatDate(
-                                                        product.createdAt
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
+                                                    <td className="px-4 py-4 text-gray-500">
+                                                        {formatDate(
+                                                            product.createdAt
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                 ) : (
                                     <tr>
                                         <td
@@ -806,13 +905,16 @@ function AdminDashboard() {
                                     </div>
 
                                     <p className="text-xs">
-                                        {review.productName || "Product"}
+                                        {review.productName ||
+                                            "Product"}
                                     </p>
 
                                     <p className="text-sm tracking-wide">
                                         {"★".repeat(
                                             Math.min(
-                                                Number(review.rating || 0),
+                                                Number(
+                                                    review.rating || 0
+                                                ),
                                                 5
                                             )
                                         )}
@@ -823,7 +925,9 @@ function AdminDashboard() {
                                     </p>
 
                                     <p className="text-[10px] text-gray-400">
-                                        {formatDate(review.createdAt)}
+                                        {formatDate(
+                                            review.createdAt
+                                        )}
                                     </p>
                                 </div>
                             ))
@@ -904,7 +1008,9 @@ function AdminModal({
             >
                 <div
                     className="w-full max-w-[520px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
-                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
                 >
                     <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
                         FASCO
@@ -972,7 +1078,9 @@ function AdminModal({
         description = "Real customers from the database.";
 
         rows = customers.map((customer) => [
-            customer.name || customer.username || "Customer",
+            customer.name ||
+            customer.username ||
+            "Customer",
             customer.email || "—",
             customer.createdAt
                 ? formatDate(customer.createdAt)
@@ -982,23 +1090,33 @@ function AdminModal({
 
     if (modal.type === "reviews") {
         title = "All Reviews";
-        description = "Real customer reviews from the database.";
+        description =
+            "Real customer reviews from the database.";
 
         rows = reviews.map((review) => [
-            review.customerName || review.userName || "Customer",
+            review.customerName ||
+            review.userName ||
+            "Customer",
             review.productName || "Product",
-            review.rating ? `${Number(review.rating)}/5` : "—",
+            review.rating
+                ? `${Number(review.rating)}/5`
+                : "—",
         ]);
     }
 
     if (modal.type === "products") {
         title = "All Products";
-        description = "Real products from the database.";
+        description =
+            "Real products from the database.";
 
         rows = products.map((product) => [
-            product.name || product.title || "Product",
+            product.name ||
+            product.title ||
+            "Product",
             product.category || "—",
-            `$${Number(product.price ?? 0).toFixed(2)}`,
+            `$${Number(
+                product.price ?? 0
+            ).toFixed(2)}`,
             String(product.stock ?? 0),
         ]);
     }
@@ -1026,7 +1144,9 @@ function AdminModal({
             >
                 <div
                     className="w-full max-w-[800px] rounded-md border border-[#e5e2dd] bg-white p-7 shadow-xl"
-                    onMouseDown={(event) => event.stopPropagation()}
+                    onMouseDown={(event) =>
+                        event.stopPropagation()
+                    }
                 >
                     <p className="text-center font-serif text-[11px] tracking-[0.18em] text-[#99958e]">
                         FASCO
@@ -1047,19 +1167,27 @@ function AdminModal({
                                     key={`${row.join("-")}-${index}`}
                                     className="grid grid-cols-[1fr_1fr_auto] gap-4 border-b border-[#eeeae5] px-4 py-3 text-xs last:border-b-0"
                                 >
-                                    {row.map((value, valueIndex) => (
-                                        <span
-                                            key={valueIndex}
-                                            className={
-                                                valueIndex ===
-                                                    row.length - 1
-                                                    ? "text-right text-[#77736d]"
-                                                    : ""
-                                            }
-                                        >
-                                            {value}
-                                        </span>
-                                    ))}
+                                    {row.map(
+                                        (
+                                            value,
+                                            valueIndex
+                                        ) => (
+                                            <span
+                                                key={
+                                                    valueIndex
+                                                }
+                                                className={
+                                                    valueIndex ===
+                                                        row.length -
+                                                        1
+                                                        ? "text-right text-[#77736d]"
+                                                        : ""
+                                                }
+                                            >
+                                                {value}
+                                            </span>
+                                        )
+                                    )}
                                 </div>
                             ))
                         ) : (
