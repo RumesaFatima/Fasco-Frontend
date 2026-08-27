@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import {
     getProducts,
     createProduct,
@@ -402,7 +400,6 @@ function ManageProducts() {
 
     return (
         <div className="min-h-screen bg-[#faf9f7] text-[#171717]">
-            <Navbar />
 
             <main className="mx-auto w-full max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
                 <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -679,7 +676,6 @@ function ManageProducts() {
                 </div>
             </main>
 
-            <Footer />
 
             {showForm && (
                 <div className="fixed inset-0 z-100 overflow-y-auto bg-black/50 px-4 py-8">

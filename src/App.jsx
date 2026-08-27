@@ -27,6 +27,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ManageProducts from "./pages/ManageProducts";
 import PaymentSuccessful from "./pages/PaymentSuccessful";
 import PaymentCancelled from "./pages/PaymentCancelled";
 
@@ -176,7 +177,10 @@ function Shell() {
             path="/admin"
             element={<AdminDashboard />}
           />
-         
+          <Route
+            path="/admin/products"
+            element={<ManageProducts />}
+          />
           <Route
             path="/payment-success"
             element={<PaymentSuccessful />}
