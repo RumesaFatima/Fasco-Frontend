@@ -16,7 +16,9 @@ const PaymentSuccessful = () => {
       return;
     }
 
-    fetch(`https://fasco-backend-two.vercel.app/api/payments/checkout-session/${sessionId}`)
+    fetch(
+      `https://fasco-backend-two.vercel.app/api/payments/checkout-session/${sessionId}`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -33,22 +35,22 @@ const PaymentSuccessful = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-gray-500">Loading payment details...</p>
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <p className="text-sm text-gray-600">Loading payment details...</p>
       </div>
     );
   }
 
   if (!payment) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="text-center">
-          <h1 className="font-serif text-3xl mb-3">
+          <h1 className="font-serif text-3xl text-black mb-4">
             Payment Details Not Found
           </h1>
           <button
             onClick={() => nav("/shop")}
-            className="bg-black text-white px-8 py-3 text-xs tracking-widest"
+            className="bg-black text-white px-8 py-3 text-xs tracking-widest hover:bg-gray-900 transition"
           >
             CONTINUE SHOPPING
           </button>
@@ -68,7 +70,6 @@ const PaymentSuccessful = () => {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-xl">
-
         <div className="flex justify-center mb-6">
           <div className="w-14 h-14 rounded-full border border-black flex items-center justify-center">
             <svg
@@ -91,82 +92,82 @@ const PaymentSuccessful = () => {
           Payment Successful
         </h1>
 
-        <p className="text-center text-gray-500 text-sm max-w-md mx-auto mb-10">
-          Thank you for your purchase. Your payment has been successfully completed.
+        <p className="text-center text-gray-600 text-sm max-w-md mx-auto mb-10 leading-6">
+          Thank you for your purchase. Your payment has been successfully
+          completed.
         </p>
 
-        <div className="border border-gray-200">
-
-          <div className="flex justify-between items-start gap-6 px-6 py-4 border-b border-gray-200">
-            <span className="text-xs tracking-widest text-gray-500 shrink-0 pt-1">
+        <div className="border border-gray-300">
+          <div className="flex justify-between items-start gap-6 px-6 py-4 border-b border-gray-300">
+            <span className="text-xs font-medium tracking-widest text-gray-600 shrink-0 pt-1">
               ORDER NUMBER
             </span>
 
-            <span className="text-sm font-semibold text-black text-right break-all max-w-[65%]">
+            <span className="text-sm font-medium text-black text-right break-all max-w-[65%]">
               {payment.id}
             </span>
           </div>
 
-          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-            <span className="text-xs tracking-widest text-gray-500">
+          <div className="flex justify-between items-start gap-6 px-6 py-4 border-b border-gray-300">
+            <span className="text-xs font-medium tracking-widest text-gray-600 shrink-0">
               CUSTOMER EMAIL
             </span>
 
-            <span className="text-sm font-semibold text-black">
+            <span className="text-sm font-medium text-black text-right break-all max-w-[65%]">
               {payment.customerEmail}
             </span>
           </div>
 
-          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-            <span className="text-xs tracking-widest text-gray-500">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300">
+            <span className="text-xs font-medium tracking-widest text-gray-600">
               AMOUNT
             </span>
 
-            <span className="text-sm font-semibold text-black">
+            <span className="text-sm font-medium text-black">
               ${amount}
             </span>
           </div>
 
-          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-            <span className="text-xs tracking-widest text-gray-500">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300">
+            <span className="text-xs font-medium tracking-widest text-gray-600">
               STATUS
             </span>
 
-            <span className="text-sm font-semibold text-black">
-              {payment.paymentStatus === "paid" ? "Paid" : payment.paymentStatus}
+            <span className="text-sm font-medium text-black">
+              {payment.paymentStatus === "paid"
+                ? "Paid"
+                : payment.paymentStatus}
             </span>
           </div>
 
-          <div className="px-6 py-4">
-            <span className="block text-xs tracking-widest text-gray-500 mb-1">
+          <div className="flex justify-between items-center px-6 py-4">
+            <span className="text-xs font-medium tracking-widest text-gray-600">
               DATE
             </span>
 
-            <span className="text-sm font-semibold text-black">
+            <span className="text-sm font-medium text-black">
               {date}
             </span>
           </div>
-
         </div>
 
-        <div className="flex gap-4 mt-8">
-
+        <div className="flex flex-col sm:flex-row gap-4 mt-8">
           <button
+            type="button"
             onClick={() => nav("/account")}
-            className="flex-1 bg-black text-white text-xs tracking-widest py-3"
+            className="flex-1 bg-black text-white text-xs tracking-widest py-3 hover:bg-gray-900 transition"
           >
             VIEW ORDER
           </button>
 
           <button
+            type="button"
             onClick={() => nav("/shop")}
-            className="flex-1 border border-black text-black text-xs tracking-widest py-3"
+            className="flex-1 border border-black text-black text-xs tracking-widest py-3 hover:bg-black hover:text-white transition"
           >
             CONTINUE SHOPPING
           </button>
-
         </div>
-
       </div>
     </div>
   );
