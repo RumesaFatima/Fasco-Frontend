@@ -307,17 +307,17 @@ function Dashboard() {
                       >
 
                         <div className="flex h-24 w-24 shrink-0 items-center justify-center bg-[#f2f1ed] font-serif text-2xl">
-                          {order.productName?.charAt(0) || "F"}
+                          {order.lines?.[0]?.name?.charAt(0) || "F"}
                         </div>
 
                         <div className="flex-1">
 
                           <div className="text-[9px] uppercase tracking-[0.2em] text-[#99968e]">
-                            Order #{order.orderNumber || order._id || index + 1}
+                            Order #{order.id || order._id || index + 1}
                           </div>
 
                           <h3 className="mt-2 font-serif text-xl">
-                            {order.productName || "FASCO Product"}
+                            {order.lines?.[0]?.name || "FASCO Product"}
                           </h3>
 
                           <p className="mt-1 text-sm text-[#77746d]">
