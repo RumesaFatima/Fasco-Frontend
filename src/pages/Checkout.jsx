@@ -81,6 +81,7 @@ export default function Checkout() {
                 name: product.name,
                 price: product.price,
                 quantity: line.qty,
+                image: product.image,
               };
             }),
 
