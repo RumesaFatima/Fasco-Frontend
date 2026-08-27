@@ -16,21 +16,25 @@ const PaymentSuccessful = () => {
       return;
     }
 
-    fetch(
-      `https://fasco-backend-two.vercel.app/api/payments/checkout-session/${sessionId}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
+    const loadPayment = async () => {
+      try {
+        const response = await fetch(
+          `https://fasco-backend-two.vercel.app/api/payments/checkout-session/${sessionId}`
+        );
+
+        const data = await response.json();
+
+        if (data.success && data.session) {
           setPayment(data.session);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Payment details error:", error);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    loadPayment();
   }, [searchParams]);
 
   if (loading) {
@@ -48,7 +52,9 @@ const PaymentSuccessful = () => {
           <h1 className="font-serif text-3xl text-black mb-4">
             Payment Details Not Found
           </h1>
+
           <button
+            type="button"
             onClick={() => nav("/shop")}
             className="bg-black text-white px-8 py-3 text-xs tracking-widest hover:bg-gray-900 transition"
           >
@@ -59,7 +65,7 @@ const PaymentSuccessful = () => {
     );
   }
 
-  const amount = (payment.amountTotal / 100).toFixed(2);
+  const amount = Number(payment.amountTotal || 0).toFixed(2);
 
   const date = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -99,41 +105,41 @@ const PaymentSuccessful = () => {
 
         <div className="border border-gray-300">
           <div className="flex justify-between items-start gap-6 px-6 py-4 border-b border-gray-300">
-            <span className="text-xs font-medium tracking-widest text-gray-600 shrink-0 pt-1">
+            <span className="text-xs font-semibold tracking-widest text-gray-700 shrink-0 pt-1">
               ORDER NUMBER
             </span>
 
-            <span className="text-sm font-medium text-black text-right break-all max-w-[65%]">
+            <span className="text-sm font-semibold text-black text-right break-all max-w-[65%]">
               {payment.id}
             </span>
           </div>
 
           <div className="flex justify-between items-start gap-6 px-6 py-4 border-b border-gray-300">
-            <span className="text-xs font-medium tracking-widest text-gray-600 shrink-0">
+            <span className="text-xs font-semibold tracking-widest text-gray-700 shrink-0">
               CUSTOMER EMAIL
             </span>
 
-            <span className="text-sm font-medium text-black text-right break-all max-w-[65%]">
-              {payment.customerEmail}
+            <span className="text-sm font-semibold text-black text-right break-all max-w-[65%]">
+              {payment.customerEmail || "N/A"}
             </span>
           </div>
 
           <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300">
-            <span className="text-xs font-medium tracking-widest text-gray-600">
+            <span className="text-xs font-semibold tracking-widest text-gray-700">
               AMOUNT
             </span>
 
-            <span className="text-sm font-medium text-black">
+            <span className="text-sm font-semibold text-black">
               ${amount}
             </span>
           </div>
 
           <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300">
-            <span className="text-xs font-medium tracking-widest text-gray-600">
+            <span className="text-xs font-semibold tracking-widest text-gray-700">
               STATUS
             </span>
 
-            <span className="text-sm font-medium text-black">
+            <span className="text-sm font-semibold text-black">
               {payment.paymentStatus === "paid"
                 ? "Paid"
                 : payment.paymentStatus}
@@ -141,11 +147,11 @@ const PaymentSuccessful = () => {
           </div>
 
           <div className="flex justify-between items-center px-6 py-4">
-            <span className="text-xs font-medium tracking-widest text-gray-600">
+            <span className="text-xs font-semibold tracking-widest text-gray-700">
               DATE
             </span>
 
-            <span className="text-sm font-medium text-black">
+            <span className="text-sm font-semibold text-black">
               {date}
             </span>
           </div>
@@ -154,7 +160,7 @@ const PaymentSuccessful = () => {
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
           <button
             type="button"
-            onClick={() => nav("/account")}
+            onClick={() => nav("/account?section=orders")}
             className="flex-1 bg-black text-white text-xs tracking-widest py-3 hover:bg-gray-900 transition"
           >
             VIEW ORDER
