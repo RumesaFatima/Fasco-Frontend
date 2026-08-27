@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    getProducts,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-} from "../services/productApi";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 const emptyForm = {
     id: "",
@@ -100,6 +96,7 @@ const formToProduct = (form) => ({
         .split("\n")
         .map((item) => {
             const [name, hex] = item.split("|");
+
             return {
                 name: name?.trim() || "",
                 hex: hex?.trim() || "",
@@ -131,10 +128,51 @@ const productToForm = (product) => ({
         : "",
     colors: Array.isArray(product?.colors)
         ? product.colors
-            .map((color) => `${color?.name || ""}|${color?.hex || ""}`)
+            .map(
+                (color) =>
+                    `${color?.name || ""}|${color?.hex || ""}`
+            )
             .join("\n")
         : "",
 });
+
+const adminRequest = async (endpoint, options = {}) => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+        throw new Error("Admin authorization required");
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}${endpoint}`,
+        {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+                ...(options.headers || {}),
+            },
+        }
+    );
+
+    let data = null;
+
+    try {
+        data = await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.message ||
+            data?.error ||
+            `Request failed with status ${response.status}`
+        );
+    }
+
+    return data;
+};
 
 function ManageProducts() {
     const navigate = useNavigate();
@@ -158,7 +196,9 @@ function ManageProducts() {
             setLoading(true);
             setError("");
 
-            const data = await getProducts();
+            const data = await adminRequest(
+                "/api/admin/products"
+            );
 
             const list = Array.isArray(data)
                 ? data
@@ -170,6 +210,16 @@ function ManageProducts() {
 
             setProducts(list);
         } catch (err) {
+            if (
+                err?.message === "Admin authorization required" ||
+                err?.message === "Unauthorized" ||
+                err?.message === "Invalid or expired admin token"
+            ) {
+                localStorage.removeItem("adminToken");
+                navigate("/login");
+                return;
+            }
+
             setError(
                 err?.message ||
                 "Failed to load products."
@@ -302,11 +352,13 @@ function ManageProducts() {
                 const productId =
                     getProductId(editingProduct);
 
-                const response =
-                    await updateProduct(
-                        productId,
-                        payload
-                    );
+                const response = await adminRequest(
+                    `/api/admin/products/${productId}`,
+                    {
+                        method: "PUT",
+                        body: JSON.stringify(payload),
+                    }
+                );
 
                 const updatedProduct =
                     response?.product ||
@@ -315,8 +367,7 @@ function ManageProducts() {
 
                 setProducts((current) =>
                     current.map((product) =>
-                        getProductId(product) ===
-                        productId
+                        getProductId(product) === productId
                             ? updatedProduct
                             : product
                     )
@@ -326,8 +377,13 @@ function ManageProducts() {
                     "Product updated successfully."
                 );
             } else {
-                const response =
-                    await createProduct(payload);
+                const response = await adminRequest(
+                    "/api/admin/products",
+                    {
+                        method: "POST",
+                        body: JSON.stringify(payload),
+                    }
+                );
 
                 const newProduct =
                     response?.product ||
@@ -370,13 +426,17 @@ function ManageProducts() {
             setDeletingId(productId);
             setError("");
 
-            await deleteProduct(productId);
+            await adminRequest(
+                `/api/admin/products/${productId}`,
+                {
+                    method: "DELETE",
+                }
+            );
 
             setProducts((current) =>
                 current.filter(
                     (product) =>
-                        getProductId(product) !==
-                        productId
+                        getProductId(product) !== productId
                 )
             );
 
@@ -400,7 +460,6 @@ function ManageProducts() {
 
     return (
         <div className="min-h-screen bg-[#faf9f7] text-[#171717]">
-
             <main className="mx-auto w-full max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
                 <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -608,13 +667,12 @@ function ManageProducts() {
 
                                                     <td className="px-5 py-4">
                                                         <span
-                                                            className={`inline-flex rounded-full px-3 py-1 text-[10px] font-medium ${
-                                                                productStatus === "In Stock"
+                                                            className={`inline-flex rounded-full px-3 py-1 text-[10px] font-medium ${productStatus === "In Stock"
                                                                     ? "bg-[#edf7ee] text-[#3d7a48]"
                                                                     : productStatus === "Low Stock"
                                                                         ? "bg-[#fff5df] text-[#a86d05]"
                                                                         : "bg-[#fff0ee] text-[#c64e43]"
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {productStatus}
                                                         </span>
@@ -675,7 +733,6 @@ function ManageProducts() {
                         )}
                 </div>
             </main>
-
 
             {showForm && (
                 <div className="fixed inset-0 z-100 overflow-y-auto bg-black/50 px-4 py-8">
