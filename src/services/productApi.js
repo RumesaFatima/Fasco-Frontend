@@ -1,7 +1,4 @@
-const API_BASE = (
-    import.meta.env.VITE_API_BASE_URL ||
-    "https://fasco-backend-two.vercel.app/api"
-).replace(/\/+$/, "");
+const API_BASE = "https://fasco-backend-two.vercel.app/api";
 
 const getAdminToken = () =>
     localStorage.getItem("adminToken");
@@ -42,8 +39,10 @@ const request = async (endpoint, options = {}) => {
 
     if (!response.ok) {
         throw new Error(
-            data?.message ||
-            `Request failed (${response.status})`
+            typeof data === "string"
+                ? data
+                : data?.message ||
+                `Request failed (${response.status})`
         );
     }
 
