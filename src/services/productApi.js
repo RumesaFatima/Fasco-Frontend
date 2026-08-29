@@ -2,6 +2,7 @@ const API_BASE = (
     import.meta.env.VITE_API_BASE_URL ||
     "https://fasco-backend-two.vercel.app/api"
 ).replace(/\/+$/, "");
+
 const getAdminToken = () =>
     localStorage.getItem("adminToken");
 
@@ -12,24 +13,20 @@ const request = async (endpoint, options = {}) => {
         `${API_BASE}${endpoint}`,
         {
             ...options,
-
             headers: {
                 Accept: "application/json",
-
                 ...(options.body
                     ? {
                         "Content-Type":
                             "application/json",
                     }
                     : {}),
-
                 ...(token
                     ? {
                         Authorization:
                             `Bearer ${token}`,
                     }
                     : {}),
-
                 ...(options.headers || {}),
             },
         }
@@ -52,6 +49,7 @@ const request = async (endpoint, options = {}) => {
 
     return data;
 };
+
 export const getProducts = async () => {
     return request("/admin/products");
 };
@@ -71,20 +69,14 @@ export const updateProduct = async (
     productId,
     productData
 ) => {
-    return request(
-        `/admin/products/${productId}`,
-        {
-            method: "PUT",
-            body: JSON.stringify(productData),
-        }
-    );
+    return request(`/admin/products/${productId}`, {
+        method: "PUT",
+        body: JSON.stringify(productData),
+    });
 };
 
 export const deleteProduct = async (productId) => {
-    return request(
-        `/admin/products/${productId}`,
-        {
-            method: "DELETE",
-        }
-    );
+    return request(`/admin/products/${productId}`, {
+        method: "DELETE",
+    });
 };
