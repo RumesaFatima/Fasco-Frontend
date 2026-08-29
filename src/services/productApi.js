@@ -2,7 +2,6 @@ const API_BASE = (
     import.meta.env.VITE_API_BASE_URL ||
     "https://fasco-backend-two.vercel.app/api"
 ).replace(/\/+$/, "");
-
 const getAdminToken = () =>
     localStorage.getItem("adminToken");
 
